@@ -1,9 +1,7 @@
-import AWS from "aws-sdk";
-import multer from "multer";
-import multerS3 from "multer-s3";
-import dotenv from "dotenv";
-
-dotenv.config();
+const AWS = require('aws-sdk');
+const multer = require('multer');
+const multerS3 = require('multer-s3');
+require('dotenv').config();
 
 // AWS Configuration
 const s3 = new AWS.S3({
@@ -11,7 +9,6 @@ const s3 = new AWS.S3({
   secretAccessKey: process.env.AWS_SECRET_KEY,
   region: process.env.AWS_REGION
 });
-
 
 // ✅ Function to check S3 connectivity on startup
 const checkS3Connection = async () => {
@@ -44,4 +41,4 @@ const getCloudFrontUrl = (s3Key) => {
   return `https://${process.env.CLOUDFRONT_DOMAIN}/${s3Key}`;
 };
 
-export { upload, s3, getCloudFrontUrl ,checkS3Connection};
+module.exports = { upload, s3, getCloudFrontUrl, checkS3Connection };

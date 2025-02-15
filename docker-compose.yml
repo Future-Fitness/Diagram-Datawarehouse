@@ -1,0 +1,41 @@
+version: '3.8'
+
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  backend:
+    container_name: diagram-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - PORT=4000
+      - FLASK_API_URL=http://diagram-flask:5001  # ✅ Ensure it matches Flask service
+    networks:
+      - app-network
+    depends_on:
+      - diagram-flask  # ✅ Must match Flask service
+
+  diagram-flask:  # ✅ Ensure this matches what backend is calling
+    container_name: diagram-flask
+    build:
+      context: ./image-analysis-service
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./image-analysis-service:/app
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
