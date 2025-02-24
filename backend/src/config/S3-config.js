@@ -23,17 +23,18 @@ const checkS3Connection = async () => {
   
 // Multer Setup for Uploads
 const upload = multer({
-  storage: multerS3({
-    s3: s3,
-    bucket: process.env.S3_BUCKET_NAME,
-    acl: "public-read", // Allow public access via CloudFront
-    metadata: (req, file, cb) => {
-      cb(null, { fieldName: file.fieldname });
-    },
-    key: (req, file, cb) => {
-      cb(null, `uploads/${Date.now()}-${file.originalname}`);
-    }
-  })
+  storage : multer.memoryStorage()
+  // storage: multerS3({
+  //   s3: s3,
+  //   bucket: process.env.S3_BUCKET_NAME,
+  //   acl: "public-read", // Allow public access via CloudFront
+  //   metadata: (req, file, cb) => {
+  //     cb(null, { fieldName: file.fieldname });
+  //   },
+  //   key: (req, file, cb) => {
+  //     cb(null, `uploads/${Date.now()}-${file.originalname}`);
+  //   }
+  // })
 });
 
 // Function to Generate CloudFront URL
