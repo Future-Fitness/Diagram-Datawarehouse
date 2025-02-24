@@ -35,7 +35,7 @@ app.use((err, req, res, next) => {
 //     console.log(`Server is running on port ${PORT}`);
 // });
 // ✅ Ensure Both DB and S3 Work Before Starting Server
-Promise.all([ checkS3Connection()])
+Promise.all([connectDB(), checkS3Connection()])
   .then(() => {
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })

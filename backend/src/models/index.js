@@ -8,7 +8,23 @@ const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const db = {};
 
-// Import all models
+const connectDB = async () => {
+  console.log(`Environment: ${env}`);
+  console.log('Attempting to connect to MongoDB...');
+  try {
+    await mongoose.connect(process.env.MONGODB_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log('MongoDB connected successfully');
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    process.exit(1);
+  }
+};
+
+// Import all models with detailed logging
+const loadedModels = [];
 fs
   .readdirSync(__dirname)
   .filter(file => {
@@ -20,11 +36,14 @@ fs
     );
   })
   .forEach(file => {
-    const model = require(path.join(__dirname, file));
+    const filePath = path.join(__dirname, file);
+    const model = require(filePath);
+    loadedModels.push(model.modelName);
     db[model.modelName] = model;
+    console.log(`Loaded model: ${model.modelName} from file: ${file}`);
   });
 
-// Add mongoose instance to db object
+console.log(`Total models loaded: ${loadedModels.length}`);
 db.mongoose = mongoose;
 
-module.exports = db;
+module.exports = { connectDB, db };
