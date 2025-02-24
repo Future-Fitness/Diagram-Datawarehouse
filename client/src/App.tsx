@@ -5,15 +5,17 @@ import './App.css'
 import { Route, Router, Routes } from 'react-router-dom'
 import Home from './pages/Home'
 import UploadForm from './pages/UploadPage'
+import ViewAllImages from './pages/ImageViewerPage'
 
 function App() {
-  const [count, setCount] = useState(0)
+
 
   return (
 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/upload" element={<UploadForm />} />
+        <Route path="/imagecollection" element={<ViewAllImages />} />
         {/* <Route path="/about" element={<About />} /> */}
       </Routes>
 

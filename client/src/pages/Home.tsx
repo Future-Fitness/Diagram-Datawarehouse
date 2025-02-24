@@ -50,7 +50,7 @@ const navigate = useNavigate()
         </button>
         <button
           className="bg-blue-600 text-white px-6 py-3 rounded-lg"
-        //   onClick={() => navigate('/view')}
+          onClick={() => navigate('/imagecollection')}
         >
           View All Images
         </button>
