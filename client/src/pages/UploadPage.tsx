@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 
 import { FaCloudUploadAlt } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 export default function UploadForm() {
   const [step, setStep] = useState(1);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
     subjectId: "",
@@ -122,6 +124,14 @@ export default function UploadForm() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center p-6 bg-blue-200 overflow-y-hidden">
+
+
+<button
+        onClick={() => navigate(-1)}
+        className="absolute top-6 left-6 px-3 py-2 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition-colors"
+      >
+        Back
+      </button>
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
       {step === 1 && (
           <>
