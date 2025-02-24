@@ -13,24 +13,25 @@ app.use(morgan('dev'));
 
 
 // ✅ Ensure Both DB and S3 Work Before Starting Server
-// Promise.all([connectDB(), checkS3Connection()])
-//   .then(() => {
-//     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-//   })
-//   .catch((err) => {
-//     console.error("❌ Failed to start server:", err);
-//     process.exit(1);
-//   });
+Promise.all([connectDB(), checkS3Connection()])
+  .then(() => {
+    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  })
+  .catch((err) => {
+    console.error("❌ Failed to start server:", err);
+    process.exit(1);
+  });
   
-// // Routes
-// app.get('/', (req, res) => {
-//   res.json({ message: 'Welcome to the API' });
-// });
+// Routes
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to the API' });
+});
 
 
 
 // API Routes
 const apiRoutes = require('./routes/api');
+const { connectDB } = require('./src/config/database');
 app.use('/api', apiRoutes);
 
 // Error handling middleware
@@ -45,7 +46,7 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// });
 

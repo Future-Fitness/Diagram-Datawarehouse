@@ -6,6 +6,19 @@ const FLASK_API_URL = process.env.FLASK_API_URL || 'http://localhost:5001';
 
 const analyzeAndUploadImage = async (req, res) => {
     try {
+
+        
+        const s3 = new AWS.S3();
+        const upload = multer({
+            storage: multerS3({
+                s3,
+                bucket: "diagram-analysis-storage",
+                acl: "private",
+                key: (req, file, cb) => {
+                    cb(null, `uploads/${Date.now()}_${file.originalname}`);
+                },
+            }),
+        });
         const file = req.file;
         if (!file) {
             return res.status(400).json({ error: 'No image file provided' });
@@ -57,15 +70,15 @@ const analyzeAndUploadImage = async (req, res) => {
         // };
 
         // Log analysis results
-        // console.log('Image Analysis Results:', {
-        //     filename: file.originalname,
-        //     fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-        //     chartType: flaskResponse.data.chart_analysis.type,
-        //     shapes: flaskResponse.data.shapes_detected,
-        //     textAnalysis: flaskResponse.data.text_analysis,
-        //     isHandwritten: flaskResponse.data.handwritten_or_printed,
-        //     hasGrid: flaskResponse.data.grid_detection
-        // });
+        console.log('Image Analysis Results:', {
+            filename: file.originalname,
+            fileSize: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+           chartType: flaskResponse.data?.chart_analysis?.type || 'Unknown',
+            shapes: flaskResponse.data?.shapes_detected || {},
+            textAnalysis: flaskResponse.data?.text_analysis || {},
+            isHandwritten: flaskResponse.data?.handwritten_or_printed || 'Unknown',
+            hasGrid: flaskResponse.data?.grid_detection ?? false
+        });
 
         return res.status(200).json({
             data: flaskResponse.data

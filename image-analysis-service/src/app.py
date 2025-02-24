@@ -111,30 +111,41 @@ def root():
         ]
     })
 
+
+def assign_quality_label(score):
+    """Assigns a Low, Medium, or High rating based on quality score."""
+    if score >= 80:
+        return "High"
+    elif score >= 50:
+        return "Medium"
+    else:
+        return "Low"
+    
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
     logger.info('Analyze endpoint called')
     if 'image' not in request.files:
-        logger.error('No image file in request')
         return jsonify({'error': 'No image provided'}), 400
-    
+
     image = request.files['image']
     image_path = os.path.join(UPLOAD_FOLDER, image.filename)
     image.save(image_path)
 
     try:
-        # Get comprehensive analysis
+        # Get Image Quality Metrics
         quality_metrics = analyze_image_quality(image_path)
-        diagram_analysis = analyze_diagram(image_path)
-        
-        # Combine all results
+        quality_score = quality_metrics["quality_scores"]["overall_quality"]
+        quality_label = assign_quality_label(quality_score)
+
+        # Combine All Results
         result = {
-            **quality_metrics,
-            **diagram_analysis,
             "file_info": {
                 "filename": image.filename,
                 "size_mb": os.path.getsize(image_path) / (1024 * 1024)
-            }
+            },
+            "quality_rating": quality_label,
+            **quality_metrics
         }
         
         return jsonify(result)
@@ -144,6 +155,7 @@ def analyze():
         if os.path.exists(image_path):
             os.remove(image_path)
 
+            
 @app.route('/health', methods=['GET'])
 def health_check():
     logger.info('Health check endpoint called')
