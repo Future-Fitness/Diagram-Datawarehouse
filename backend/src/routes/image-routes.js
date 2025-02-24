@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { InfoController } = require('../../controllers');
-const { ImageController } = require('../../controllers');
+const { analyzeAndUploadImage } = require('../controllers/Image-controller');
 
 // Configure multer for memory storage
 const upload = multer({
@@ -12,8 +11,7 @@ const upload = multer({
     }
 });
 
-router.get('/info', InfoController.info);
+// Route for image upload and analysis
+router.post('/analyze', upload.single('image'), analyzeAndUploadImage);
 
-router.post('/analyze', upload.single('image'), ImageController.analyzeAndUploadImage);
-
-module.exports = router;
+module.exports = router; 

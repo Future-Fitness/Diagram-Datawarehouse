@@ -31,6 +31,7 @@ app.get('/', (req, res) => {
 
 // API Routes
 const apiRoutes = require('./routes/api');
+const { connectDB } = require('./src/config/database');
 app.use('/api', apiRoutes);
 
 // Error handling middleware
@@ -44,8 +45,8 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 5001;
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// });
 
