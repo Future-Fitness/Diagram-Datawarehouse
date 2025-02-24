@@ -13,7 +13,7 @@ app.use(morgan('dev'));
 
 
 // ✅ Ensure Both DB and S3 Work Before Starting Server
-Promise.all([connectDB(), checkS3Connection()])
+Promise.all([ checkS3Connection()])
   .then(() => {
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
