@@ -14,6 +14,8 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/signin" element={<Home />} />
+        <Route path="/signup" element={<Home />} />
         <Route path="/upload" element={<UploadForm />} />
         <Route path="/imagecollection" element={<ViewAllImages />} />
         {/* <Route path="/about" element={<About />} /> */}
