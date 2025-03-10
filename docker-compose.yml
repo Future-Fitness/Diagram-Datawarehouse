@@ -1,5 +1,3 @@
-
-
 networks:
   app-network:
     driver: bridge
@@ -15,20 +13,24 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
-
     env_file:
       - ./backend/.env
     environment:
       - PORT=4000
-      - FLASK_API_URL=http://diagram-flask:5001  # ✅ Ensure it matches Flask service
+      - FLASK_API_URL=http://diagram-flask:5001  # ✅ Matches Flask service
       - DATABASE_URL=postgres://diagram:diagram123@diagram-postgres:5432/diagramdb
-
+      - REDIS_URL=redis://diagram-redis:6379  # ✅ New Redis connection URL
     networks:
       - app-network
     depends_on:
-      - diagram-flask  # ✅ Must match Flask service
+      diagram-flask:
+        condition: service_healthy
+      diagram-postgres:
+        condition: service_healthy
+      diagram-redis:
+        condition: service_healthy  # ✅ Ensures Redis is ready before backend starts
 
-  diagram-flask:  # ✅ Ensure this matches what backend is calling
+  diagram-flask:
     container_name: diagram-flask
     build:
       context: ./image-analysis-service
@@ -44,6 +46,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
   diagram-postgres:
     container_name: diagram-postgres
     image: postgres:13-alpine
@@ -58,6 +61,28 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U diagram -d diagramdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  diagram-redis:  # ✅ New Redis service
+    container_name: diagram-redis
+    image: redis:7  # ✅ Latest stable Redis version
+    restart: always
+    ports:
+      - "6379:6379"  # ✅ Default Redis port
+    volumes:
+      - redis-data:/data  # ✅ Persistent Redis storage
+    networks:
+      - app-network
+    healthcheck:  # ✅ Ensure Redis is ready before backend starts
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres-data:
+  redis-data:  # ✅ Volume for Redis persistence

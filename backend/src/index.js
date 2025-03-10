@@ -13,6 +13,18 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api', routes);
 
 const PORT = process.env.PORT || 4000;
+const Redis = require('ioredis');
+
+const redis = new Redis('redis://127.0.0.1:6379');
+
+redis.on('connect', () => {
+  console.log('Connected to Redis');
+});
+
+redis.on('error', (err) => {
+  console.error('Redis error:', err);
+});
+
 
 
 // Routes
