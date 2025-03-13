@@ -1,67 +1,50 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { BASE_URL } from "../App";
+import { useQuery } from "@tanstack/react-query";
+import { request, gql } from "graphql-request";
 import ImageGrid from "../components/ImageGrid";
 import SearchBar from "../components/SearchBar";
-import CategoryFilter from "../components/CategoryFilter";
 
-interface ImageData {
-  _id: string;
-  image_url: string;
-  title?: string;
-  category?: string;
-}
+const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql"; // Change this to your API URL
 
+const GET_DIAGRAMS_QUERY = gql`
+  query GetAllDiagrams($page: Int, $limit: Int) {
+    getAllDiagrams(page: $page, limit: $limit) {
+      diagrams {
+        id
+        title
+        image_url
+        created_at
+      }
+      total
+      totalPages
+      currentPage
+    }
+  }
+`;
 
-
-
-
-
+// ✅ Function to Fetch Data Using `graphql-request`
+const fetchDiagrams = async ({ queryKey }: any) => {
+  const [, page, limit] = queryKey;
+  return request(GRAPHQL_ENDPOINT, GET_DIAGRAMS_QUERY, { page, limit })
+    .then((data) => data.getAllDiagrams);
+};
 
 export default function ViewAllImages() {
-  const [images, setImages] = useState<ImageData[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`${BASE_URL}/getAllImages`); // Update API URL
-        console.log("🚀 ~ fetchImages ~ response:", response.data)
-     
-        const data = response.data.results;
-        setImages(data);
-
-        // Extract unique categories
-        const cats = Array.from(new Set(data.map((img) => img.category || "Uncategorized")));
-        setCategories(["All", ...cats]);
-      } catch (err) {
-        console.error("❌ Error fetching images", err);
-        // setError("Failed to load images. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchImages();
-  }, []);
-
-  // **Filter Images Based on Search & Category**
-  const filteredImages = images.filter((img) => {
-    const matchesCategory = selectedCategory === "All" || (img.category || "Uncategorized") === selectedCategory;
-    const matchesSearch =
-      img.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (img.category || "Uncategorized").toLowerCase().includes(searchTerm.toLowerCase());
-
-    return matchesCategory && matchesSearch;
+  // ✅ Fetch images with pagination (no category filtering)
+  const { data: imagesData, isLoading, error } = useQuery({
+    queryKey: ["diagrams", 1, 10], // ✅ Fetch images with pagination
+    queryFn: fetchDiagrams,
+    staleTime: 1000 * 60 * 5,
   });
+
+  // ✅ Filter only based on search input
+  const filteredImages = imagesData?.diagrams?.filter((img) => 
+    img.title?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -79,12 +62,7 @@ export default function ViewAllImages() {
       </header>
 
       <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <CategoryFilter
-        categories={categories}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-      />
-      <ImageGrid images={filteredImages} loading={loading} error={error} />
+      <ImageGrid images={filteredImages} loading={isLoading} error={error?.message} />
     </div>
   );
 }
