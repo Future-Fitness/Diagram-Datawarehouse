@@ -1,12 +1,17 @@
 const express = require('express');
-// const cors = require('cors');
+const cors = require('cors');
 const routes = require('./routes');
 const { checkS3Connection } = require('./config/S3-config');
 const { connectDB } = require('./config/database');
 
 const app = express();
 
-// app.use(cors());
+app.use(cors(
+  {
+    origin: '*',
+    credentials: true,
+  }
+));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {

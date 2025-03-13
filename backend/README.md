@@ -45,3 +45,5 @@ Lets take a look inside the `src` folder
  ```
  npm run dev
  ```
+
+ easyocr ,
