@@ -116,7 +116,7 @@ const analyzeAndUploadImage = async (req, res) => {
 
       console.log("🚀 ~ analyzeAndUploadImage ~ result:", result)
 
-      return res.status(200).json({ data: result });
+      return res.status(200).json({ result });
     } catch (error) {
       console.error('Error processing image:', error);
       return res.status(500).json({ error: 'Failed to process image' });

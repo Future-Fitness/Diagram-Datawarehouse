@@ -1,114 +1,142 @@
-// imageService.js
-const axios = require('axios');
-const FormData = require('form-data');
-const { s3, getCloudFrontUrl } = require('../config/S3-config');
-const AWS = require('aws-sdk');
-const multerS3 = require('multer-s3');
-const multer = require('multer');
+const axios = require("axios");
+const FormData = require("form-data");
+const { s3, getCloudFrontUrl } = require("../config/S3-config");
+const AWS = require("aws-sdk");
+const multerS3 = require("multer-s3");
+const multer = require("multer");
+const Diagram = require("../models/Diagram"); // Use correct Mongoose model
 
-const FLASK_API_URL = process.env.FLASK_API_URL || 'http://localhost:5001';
+const FLASK_API_URL = process.env.FLASK_API_URL || "http://localhost:5001";
+
+// ✅ Function to Save Analysis Data to MongoDB
 async function saveAnalysisData(imageData, analysisData) {
-    try {
-      // Save file record in DimFile
-      const fileRecord = await prisma.dimFile.create({
-        data: {
-          fileName: imageData.fileName,
-          fileSize: imageData.fileSize,
-          resolution: imageData.resolution,
-          imageUrl: imageData.imageUrl,
-          format: imageData.format,
-          metadata: imageData.metadata || null,
+  try {
+    const { basic_metrics, color_analysis, quality_scores, quality_rating } = analysisData;
+
+    const newDiagram = new Diagram({
+      image_url: imageData.imageUrl,
+      filename: imageData.fileName,
+      uploaded_by: null, // Optional: User ID if applicable
+      subjects: imageData.subjects || [],
+      category: imageData.category || "Uncategorized",
+      tags: imageData.tags || [],
+
+      file_info: {
+        file_size_mb: imageData.fileSize / (1024 * 1024),
+        format: imageData.format,
+        resolution: `${basic_metrics.dimensions.width}x${basic_metrics.dimensions.height}`,
+        dimensions: {
+          width: basic_metrics.dimensions.width,
+          height: basic_metrics.dimensions.height,
+          megapixels: basic_metrics.dimensions.megapixels,
         },
-      });
-  
-      // Create FactDiagram record referencing the new file along with provided foreign keys.
-      const factDiagramRecord = await prisma.factDiagram.create({
-        data: {
-          fileId: fileRecord.id,
-          subjectId: analysisData.subjectId,
-          diagramTypeId: analysisData.diagramTypeId,
-          sourceId: analysisData.sourceId,
-          // storageDate is automatically set via default(now())
-        },
-      });
-  
-      return factDiagramRecord;
-    } catch (error) {
-      console.error('Error saving analysis data:', error);
-      throw error;
-    }
+      },
+
+      color_analysis: {
+        dominant_colors: color_analysis.color_stats.dominant_colors,
+        color_distribution: color_analysis.color_distribution,
+      },
+
+      quality_scores: {
+        overall_quality: quality_scores.overall_quality,
+        blur_score: quality_scores.blur_score,
+        brightness_score: quality_scores.brightness_score,
+        contrast_score: quality_scores.contrast_score,
+        detail_score: quality_scores.detail_score,
+        edge_density: quality_scores.edge_density,
+        noise_level: quality_scores.noise_level,
+        sharpness: quality_scores.sharpness,
+      },
+
+      quality_rating: quality_rating,
+
+      extracted_text: analysisData?.extracted_text || "",
+      extracted_symbols: analysisData?.extracted_symbols || [],
+      related_diagrams: [],
+      searchable_text: `${imageData.fileName} ${imageData.category} ${imageData.tags.join(" ")} ${
+        analysisData?.extracted_text || ""
+      }`,
+    });
+
+    await newDiagram.save();
+    console.log("✅ Analysis data saved successfully in MongoDB");
+    return newDiagram;
+  } catch (error) {
+    console.error("❌ Error saving analysis data:", error);
+    throw error;
   }
-const processImage = async (file, analysisData) => {
+}
+
+// ✅ Function to Process Image
+const processImage = async (file, imageMetadata) => {
   if (!file) {
-    throw new Error('No image file provided');
+    throw new Error("❌ No image file provided");
   }
 
-  // 1. Analyze image using Flask API
-  const formData = new FormData();
-  formData.append('image', file.buffer, {
-    filename: file.originalname,
-    contentType: file.mimetype,
-  });
-  const flaskResponse = await axios.post(`${FLASK_API_URL}/analyze`, formData, {
-    headers: formData.getHeaders(),
-    maxContentLength: Infinity,
-    maxBodyLength: Infinity,
-    timeout: 30000,
-  });
+  try {
+    // 1️⃣ **Analyze Image Using Flask API**
+    const formData = new FormData();
+    formData.append("image", file.buffer, {
+      filename: file.originalname,
+      contentType: file.mimetype,
+    });
 
-  // 2. Upload to S3 (example using AWS SDK directly)
-  const s3Client = new AWS.S3();
-  const s3Key = `uploads/${Date.now()}-${file.originalname}`;
-  const s3Upload = await s3Client
-    .upload({
+    const flaskResponse = await axios.post(`${FLASK_API_URL}/analyze`, formData, {
+      headers: formData.getHeaders(),
+      maxContentLength: Infinity,
+      maxBodyLength: Infinity,
+      timeout: 30000,
+    });
+
+    if (!flaskResponse || !flaskResponse.data ) {
+      throw new Error("❌ No valid response from Flask API");
+    }
+
+    console.log("🚀 Flask API Analysis Completed");
+
+    // 2️⃣ **Upload to AWS S3**
+    const s3Key = `uploads/${Date.now()}-${file.originalname}`;
+    const s3Upload = await s3.upload({
       Bucket: process.env.S3_BUCKET_NAME,
       Key: s3Key,
       Body: file.buffer,
       ContentType: file.mimetype,
-      ACL: 'public-read',
-    })
-    .promise();
 
-  // 3. Prepare data for insertion into PostgreSQL
-  const imageData = {
-    fileName: file.originalname,
-    fileSize: file.size,
-    resolution: '1920x1080', // Replace with dynamic resolution if needed
-    imageUrl: getCloudFrontUrl(s3Key),
-    format: file.mimetype,
-    metadata: null, // Add metadata if available
-  };
+    }).promise();
 
+    console.log("✅ Image uploaded to S3:", s3Upload.Location);
 
+    // 3️⃣ **Prepare Data for MongoDB**
+    const { basic_metrics } = flaskResponse.data;
+    console.log("🚀 ~ processImage ~ flaskResponse.data:", flaskResponse.data)
 
-    const savedData = await saveAnalysisData(imageData, analysisData);
+    const imageData = {
+      fileName: file.originalname,
+      fileSize: file.size,
+      resolution: `${basic_metrics.dimensions.width}x${basic_metrics.dimensions.height}`,
+      imageUrl: getCloudFrontUrl(s3Key),
+      format: file.mimetype,
+      subjects: imageMetadata.subjects || [],
+      category: imageMetadata.category || "Uncategorized",
+      tags: imageMetadata.tags || [],
+    };
 
-  // 3. Combine analysis results and file URL
-  const response = {
-    imageUrl: getCloudFrontUrl(s3Key),
-    analysis: flaskResponse.data,
-    uploadInfo: {
-      bucket: s3Upload.Bucket,
-      key: s3Upload.Key,
-      location: s3Upload.Location,
-    },
-    dbRecord: savedData,
-  };
+    // 4️⃣ **Save Data to MongoDB**
+    const savedData = await saveAnalysisData(imageData, flaskResponse.data);
 
-  return response;
+    // 5️⃣ **Return Final Response**
+    return {
+      imageUrl: getCloudFrontUrl(s3Key),
+      analysis: flaskResponse.data.result,
+      dbRecord: savedData,
+    };
+  } catch (error) {
+    console.error("❌ Error processing image:", error);
+    throw error;
+  }
 };
-
-
-/**
- * Saves analysis data and image file information into PostgreSQL.
- * @param {Object} imageData - Details about the image file.
- *   Example: { fileName, fileSize, resolution, imageUrl, format, metadata }
- * @param {Object} analysisData - IDs for foreign keys; extra analysis data can be stored separately.
- *   Example: { subjectId, diagramTypeId, sourceId }
- * @returns {Object} Newly created FactDiagram record.
- */
 
 module.exports = {
   processImage,
-    saveAnalysisData,
+  saveAnalysisData,
 };

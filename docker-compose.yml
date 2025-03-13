@@ -12,13 +12,13 @@ services:
       - "4000:4000"
     volumes:
       - ./backend:/app
-      - /app/node_modules
+
     env_file:
       - ./backend/.env
     environment:
       - PORT=4000
       - FLASK_API_URL=http://diagram-flask:5001  # ✅ Matches Flask service
-      - DATABASE_URL=postgres://diagram:diagram123@diagram-postgres:5432/diagramdb
+
       - REDIS_URL=redis://diagram-redis:6379  # ✅ New Redis connection URL
     networks:
       - app-network

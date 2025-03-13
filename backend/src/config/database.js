@@ -1,12 +1,13 @@
-const { PrismaClient } = require("@prisma/client");
-
-const prisma = new PrismaClient();
+const mongoose = require("mongoose");
 
 // ✅ Function to check DB connection on startup
 const connectDB = async () => {
   try {
-    await prisma.$connect();
-    console.log("✅ Connected to AWS RDS PostgreSQL");
+    const conn = await mongoose.connect(process.env.MONGODB_URL, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log(`✅ Connected to MongoDB Atlas: ${conn.connection.host}`);
   } catch (error) {
     console.error("❌ Database connection failed:", error);
     process.exit(1); // Exit the process if DB is not connected
@@ -15,9 +16,9 @@ const connectDB = async () => {
 
 // 🛑 Graceful shutdown handling
 process.on("SIGINT", async () => {
-  await prisma.$disconnect();
-  console.log("⚠️ Prisma disconnected due to app termination");
+  await mongoose.connection.close();
+  console.log("⚠️ MongoDB disconnected due to app termination");
   process.exit(0);
 });
 
-module.exports = { prisma, connectDB };
+module.exports = { connectDB };
