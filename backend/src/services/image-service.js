@@ -16,47 +16,56 @@ async function saveAnalysisData(imageData, analysisData) {
     const newDiagram = new Diagram({
       image_url: imageData.imageUrl,
       filename: imageData.fileName,
-      uploaded_by: null, // Optional: User ID if applicable
+
+      title: imageData.title,
+      subjectId: imageData.subjectId,
+      diagramTypeId: imageData.diagramTypeId,
+      sourceType: imageData.sourceType,
+      pageNumber: imageData.pageNumber,
+      author: imageData.author,
+      notes: imageData.notes,
+
       subjects: imageData.subjects || [],
       category: imageData.category || "Uncategorized",
       tags: imageData.tags || [],
 
       file_info: {
-        file_size_mb: imageData.fileSize / (1024 * 1024),
+        file_size_mb: (imageData.fileSize / (1024 * 1024)).toFixed(2),
         format: imageData.format,
         resolution: `${basic_metrics.dimensions.width}x${basic_metrics.dimensions.height}`,
         dimensions: {
           width: basic_metrics.dimensions.width,
           height: basic_metrics.dimensions.height,
-          megapixels: basic_metrics.dimensions.megapixels,
+          megapixels: basic_metrics.dimensions.megapixels || 0,
         },
       },
 
       color_analysis: {
-        dominant_colors: color_analysis.color_stats.dominant_colors,
-        color_distribution: color_analysis.color_distribution,
+        dominant_colors: color_analysis.color_stats?.dominant_colors || [],
+        color_distribution: color_analysis.color_distribution || {},
       },
 
       quality_scores: {
-        overall_quality: quality_scores.overall_quality,
-        blur_score: quality_scores.blur_score,
-        brightness_score: quality_scores.brightness_score,
-        contrast_score: quality_scores.contrast_score,
-        detail_score: quality_scores.detail_score,
-        edge_density: quality_scores.edge_density,
-        noise_level: quality_scores.noise_level,
-        sharpness: quality_scores.sharpness,
+        overall_quality: quality_scores.overall_quality || 0,
+        blur_score: quality_scores.blur_score || 0,
+        brightness_score: quality_scores.brightness_score || 0,
+        contrast_score: quality_scores.contrast_score || 0,
+        detail_score: quality_scores.detail_score || 0,
+        edge_density: quality_scores.edge_density || 0,
+        noise_level: quality_scores.noise_level || 0,
+        sharpness: quality_scores.sharpness || 0,
       },
 
-      quality_rating: quality_rating,
+      quality_rating: quality_rating || "Medium",
 
-      extracted_text: analysisData?.extracted_text || "",
-      extracted_symbols: analysisData?.extracted_symbols || [],
+      extracted_text: analysisData.extracted_text || "",
+      extracted_symbols: analysisData.extracted_symbols || [],
       related_diagrams: [],
       searchable_text: `${imageData.fileName} ${imageData.category} ${imageData.tags.join(" ")} ${
-        analysisData?.extracted_text || ""
+        analysisData.extracted_text || ""
       }`,
     });
+
 
     await newDiagram.save();
     console.log("✅ Analysis data saved successfully in MongoDB");
@@ -116,9 +125,19 @@ const processImage = async (file, imageMetadata) => {
       resolution: `${basic_metrics.dimensions.width}x${basic_metrics.dimensions.height}`,
       imageUrl: getCloudFrontUrl(s3Key),
       format: file.mimetype,
-      subjects: imageMetadata.subjects || [],
-      category: imageMetadata.category || "Uncategorized",
-      tags: imageMetadata.tags || [],
+
+      // ✅ Mapping Metadata Fields
+      title: imageMetadata.title || "Untitled",
+      subjectId: imageMetadata?.subjectId || "Unknown",
+      diagramTypeId: imageMetadata?.diagramTypeId || "General",
+      sourceType: imageMetadata?.sourceType || "Unknown",
+      pageNumber: imageMetadata?.pageNumber ? parseInt(imageMetadata?.pageNumber, 10) : null,
+      author: imageMetadata?.author || "Unknown",
+      notes: imageMetadata?.notes || "",
+      
+      subjects: imageMetadata?.subjects || [],
+      category: imageMetadata?.category || "Uncategorized",
+      tags: imageMetadata?.tags || [],
     };
 
     // 4️⃣ **Save Data to MongoDB**

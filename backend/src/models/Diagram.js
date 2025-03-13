@@ -3,9 +3,16 @@ const mongoose = require("mongoose");
 const DiagramSchema = new mongoose.Schema({
   image_url: { type: String, required: true }, // S3 or Cloud storage URL
   filename: { type: String, required: true },
-  uploaded_by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  upload_date: { type: Date, default: Date.now },
 
+  upload_date: { type: Date, default: Date.now },
+  
+  title: { type: String, required: true }, 
+  subjectId: { type: String, required: true },  // Maps to subject domain
+  diagramTypeId: { type: String, required: true }, // Maps to diagram type
+  sourceType: { type: String, required: true },  // E.g., "Book", "Research Paper"
+  pageNumber: { type: Number, required: false },  // Optional field
+  author: { type: String, required: false },  // Optional field
+  notes: { type: String, required: false },  // Optional field
   // **Categorization**
   subjects: [{ type: String }], // E.g., ["Mathematics", "Science", "CS"]
   category: { type: String, required: true },

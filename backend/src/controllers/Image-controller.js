@@ -105,14 +105,11 @@ const imageService = require('../services/image-service');
 
 const analyzeAndUploadImage = async (req, res) => {
     try {
-        const { subjectId, diagramTypeId, sourceId } = req.body;
+        const metaData = req.body;
         // Optionally, you can also extract text values
         // and look up or create new records accordingly.
         
-        const result = await imageService.processImage(req.file, {
-          subjectId,
-          diagramTypeId,
-          sourceId,})
+        const result = await imageService.processImage(req.file, metaData)
 
       console.log("🚀 ~ analyzeAndUploadImage ~ result:", result)
 
