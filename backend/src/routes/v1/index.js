@@ -15,6 +15,6 @@ const upload = multer({
 router.get('/info', InfoController.info);
 
 router.post('/analyze', upload.single('image'), ImageController.analyzeAndUploadImage);
-router.get('getAllImages', ImageController.getAllImages);
+router.get('/getAllImages', ImageController.getAllImages);
 
 module.exports = router;
