@@ -88,96 +88,10 @@ export default function ViewAllImages() {
                   "noise_level": 35.23,
                   "sharpness": 15.29
               },
-              "_id": "67d30474b374ea79b8d7baf0",
-              "image_url": "https://https://dqlmp36knl3ql.cloudfront.net/uploads/1741882484229-ButterflyDiagram.png",
-              "filename": "ButterflyDiagram.png",
-              "title": "dsadsa",
-              "subjectId": "Mathematics",
-              "diagramTypeId": "General",
-              "sourceType": "Book",
-              "pageNumber": 23,
-              "author": "ads",
-              "notes": "23dsda",
-              "subjects": [],
-              "category": "Uncategorized",
-              "sub_category": "General",
-              "tags": [],
-              "extracted_symbols": [],
-              "quality_rating": "Low",
-              "extracted_text": "",
-              "related_diagrams": [],
-              "searchable_text": "ButterflyDiagram.png Uncategorized  ",
-              "upload_date": "2025-03-13T16:14:44.840Z",
-              "mathematical_expressions": [],
-              "created_at": "2025-03-13T16:14:44.840Z",
-              "__v": 0
-          },
-          {
-              "file_info": {
-                  "dimensions": {
-                      "width": 1639,
-                      "height": 1290,
-                      "megapixels": 2.11431
-                  },
-                  "file_size_mb": 0.06,
-                  "format": "image/png",
-                  "resolution": "1639x1290"
-              },
-              "color_analysis": {
-                  "color_distribution": {
-                      "mean_rgb": [
-                          250.14566407007487,
-                          249.18907634169068,
-                          246.25115522321704
-                      ],
-                      "mean_hsv": [
-                          6.828203054424375,
-                          4.358045414343214,
-                          250.14566407007487
-                      ],
-                      "mean_lab": [
-                          249.1998037184708,
-                          127.24736296947941,
-                          127.24643973684086
-                      ],
-                      "std_rgb": [
-                          23.113084170951065,
-                          24.220107731010945,
-                          30.033249115385267
-                      ]
-                  },
-                  "dominant_colors": [
-                      [
-                          255,
-                          255,
-                          255
-                      ],
-                      [
-                          213,
-                          202,
-                          167
-                      ],
-                      [
-                          32,
-                          31,
-                          29
-                      ]
-                  ]
-              },
-              "quality_scores": {
-                  "overall_quality": 23,
-                  "blur_score": 304.27,
-                  "brightness_score": 250.15,
-                  "contrast_score": 25.4,
-                  "detail_score": 24.77,
-                  "edge_density": 0.02,
-                  "noise_level": 35.23,
-                  "sharpness": 15.29
-              },
               "_id": "67d30532cc7510f9b1bbe8b4",
               "image_url": "https://dqlmp36knl3ql.cloudfront.net/uploads/1741882674012-ButterflyDiagram.png",
               "filename": "ButterflyDiagram.png",
-              "title": "dsadsa",
+              "title": "diagram1",
               "subjectId": "Mathematics",
               "diagramTypeId": "General",
               "sourceType": "Book",
@@ -263,7 +177,7 @@ export default function ViewAllImages() {
               "_id": "67d30573cc7510f9b1bbe8b6",
               "image_url": "https://dqlmp36knl3ql.cloudfront.net/uploads/1741882738709-ButterflyDiagram.png",
               "filename": "ButterflyDiagram.png",
-              "title": "dsadsa",
+              "title": "433",
               "subjectId": "Mathematics",
               "diagramTypeId": "General",
               "sourceType": "Book",
