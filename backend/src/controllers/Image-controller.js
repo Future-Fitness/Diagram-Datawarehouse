@@ -123,45 +123,19 @@ const analyzeAndUploadImage = async (req, res) => {
     }
   };
 
-// Example response structure:
-/*
-{
-    imageUrl: "https://your-cloudfront-domain.com/uploads/image.jpg",
-    analysis: {
-        shapes_detected: {
-            circles: 2,
-            rectangles: 5,
-            lines: 10
-        },
-        chart_analysis: {
-            type: "Bar Chart",
-            characteristics: {
-                is_pie_chart: false,
-                is_bar_chart: true,
-                vertical_bars: 5,
-                horizontal_bars: 0
-            }
-        },
-        text_analysis: {
-            blocks: [
-                { text: "Label 1", confidence: 95 },
-                { text: "Value", confidence: 88 }
-            ],
-            total_words: 2,
-            average_confidence: 91.5
-        },
-        color_analysis: [[145, 128, 156], [78, 45, 89], [198, 167, 201]],
-        grid_detection: true,
-        handwritten_or_printed: "Printed"
-    },
-    uploadInfo: {
-        bucket: "your-bucket-name",
-        key: "uploads/1234567890-image.jpg",
-        location: "https://s3.amazonaws.com/..."
+// get all images from the getDataBase
+
+  const getAllImages = async (req, res) => {
+    try {
+      const results = await imageService.getAllImages();
+      return res.status(200).json({ results });
+    } catch (error) {
+      console.error(" Error fetching images:", error);
+      throw error;
     }
-}
-*/
+  }; 
 
 module.exports = {
-    analyzeAndUploadImage
+    analyzeAndUploadImage,
+    getAllImages
 };

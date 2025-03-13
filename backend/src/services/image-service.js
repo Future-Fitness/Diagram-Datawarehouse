@@ -135,8 +135,17 @@ const processImage = async (file, imageMetadata) => {
     throw error;
   }
 };
-
+const getAllImages = async () => {
+  try {
+    const images = await Diagram.find({ image_url: { $exists: true } });
+    return images;
+  } catch (error) {
+    console.error(" Error fetching images:", error);
+    throw error;
+  }
+}; 
 module.exports = {
   processImage,
   saveAnalysisData,
+  getAllImages
 };
