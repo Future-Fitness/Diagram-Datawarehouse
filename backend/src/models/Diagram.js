@@ -14,8 +14,8 @@ const DiagramSchema = new mongoose.Schema({
   author: { type: String, required: false },  // Optional field
   notes: { type: String, required: false },  // Optional field
   // **Categorization**
-  subjects: [{ type: String }], // E.g., ["Mathematics", "Science", "CS"]
-  category: { type: String, required: true },
+  subjects: [{ type: String, required: true }], // E.g., ["Mathematics", "Science", "CS"]
+
   sub_category: { type: String, default: "General" },
   tags: [{ type: String }],
 
