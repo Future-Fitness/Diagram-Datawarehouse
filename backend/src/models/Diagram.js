@@ -68,7 +68,7 @@ const DiagramSchema = new mongoose.Schema({
   quality_rating: { type: String, enum: ["Low", "Medium", "High"], required: true, default: "Medium" },
 
   extracted_text: { type: String },
-  related_diagrams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Diagram" }],
+
   searchable_text: { type: String },
 
   created_at: { type: Date, default: Date.now },
