@@ -28,6 +28,6 @@ function App() {
 }
 
 
-export const BASE_URL = 'http://localhost:4000/api/v1'
-export const GraphQL_URL = 'http://localhost:4000/graphql/api/v1'
+export const BASE_URL = 'http://127.0.0.1:4000/api/v1'
+export const GraphQL_URL = 'http://127.0.0.1:4000/graphql/api/v1'
 export default App

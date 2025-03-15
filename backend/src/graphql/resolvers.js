@@ -33,6 +33,7 @@ const resolvers = {
       }
     },
   },
+  // fetch  
 };
 
 module.exports = resolvers;

@@ -7,8 +7,9 @@ const DiagramSchema = new mongoose.Schema({
   upload_date: { type: Date, default: Date.now },
   
   title: { type: String, required: true }, 
-  subjectId: { type: String, required: true },  // Maps to subject domain
-  diagramTypeId: { type: String, required: true }, // Maps to diagram type
+  subjectId: { type: mongoose.Schema.Types.ObjectId, ref: "Subject", required: true, index: true }, // Linked Subject
+  diagramTypeId: { type: mongoose.Schema.Types.ObjectId, ref: "DiagramType", required: true, index: true }, // Linked Diagram Type
+  sub_category: { type: String, default: "General" },
   sourceType: { type: String, required: true },  // E.g., "Book", "Research Paper"
   pageNumber: { type: Number, required: false },  // Optional field
   author: { type: String, required: false },  // Optional field
@@ -16,7 +17,7 @@ const DiagramSchema = new mongoose.Schema({
   // **Categorization**
   subjects: [{ type: String, required: true }], // E.g., ["Mathematics", "Science", "CS"]
 
-  sub_category: { type: String, default: "General" },
+ 
   tags: [{ type: String }],
 
   // **Metadata Extraction**

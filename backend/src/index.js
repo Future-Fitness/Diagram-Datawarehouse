@@ -30,6 +30,8 @@ app.get("/", (req, res) => {
 // ✅ Express Routes
 app.use("/api", routes);
 
+
+
 // ✅ Redis Connection
 // const redis = new Redis("redis://127.0.0.1:6379");
 
@@ -42,10 +44,10 @@ app.use("/api", routes);
 // });
 
 // ✅ Global Error Handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Something went wrong!" });
-});
+// app.use((err, req, res, next) => {
+//   console.error(err.stack);
+//   res.status(500).json({ message: "Something went wrong!" });
+// });
 
 
 
@@ -53,7 +55,7 @@ app.use((err, req, res, next) => {
 async function startServer() {
   try {
     await connectDB();
-    await checkS3Connection();
+    await checkS3Connection()
 
     const server = new ApolloServer({
       typeDefs,
@@ -63,7 +65,9 @@ async function startServer() {
     });
 
     await server.start(); // ✅ Ensure server starts first
-    server.applyMiddleware({ app }); // ✅ Apply GraphQL middleware
+    // server.applyMiddleware({ app }); // ✅ Apply GraphQL middleware
+    server.applyMiddleware({ app, cors: { origin: "*", credentials: true } });
+
 
 
     app.listen(PORT, () => 
