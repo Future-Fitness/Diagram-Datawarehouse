@@ -107,6 +107,7 @@ const typeDefs = gql`
   type Query {
     getAllDiagrams(page: Int, limit: Int): DiagramPagination
     getDiagramById(id: ID!): Diagram
+    getAllDiagramsBySubjectType(page: Int, limit: Int): DiagramPagination
   }
 
   type Mutation {

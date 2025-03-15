@@ -1,0 +1,21 @@
+{
+    "name": "Image Processing Workspace",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "flask-api",
+    "workspaceFolder": "/workspace",
+    "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-azuretools.vscode-docker"
+    ],
+    "forwardPorts": [
+        5001,
+        5173,
+        27017
+    ],
+    "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true
+    },
+    "remoteUser": "root"
+}

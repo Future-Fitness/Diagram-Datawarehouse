@@ -5,6 +5,8 @@ import pytesseract
 import os
 from utils.image_processing import analyze_image_quality
 import logging
+from text_extract import extract_text, extract_math_symbols
+
 
 app = Flask(__name__)
 
@@ -133,10 +135,19 @@ def analyze():
     image.save(image_path)
 
     try:
+        text_result = extract_text(image_path)
+        symbols_result = extract_math_symbols(image_path)
+
+        print(text_result, '__')
+        print(symbols_result)
+
         # Get Image Quality Metrics
         quality_metrics = analyze_image_quality(image_path)
         quality_score = quality_metrics["quality_scores"]["overall_quality"]
         quality_label = assign_quality_label(quality_score)
+
+        text_result = extract_text(image_path)
+        symbols_result = extract_math_symbols(image_path)
 
         # Combine All Results
         result = {

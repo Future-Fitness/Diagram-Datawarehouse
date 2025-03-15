@@ -90,6 +90,8 @@ const processImage = async (file, imageMetadata) => {
       contentType: file.mimetype,
     });
 
+
+    //calling flask api service which analyzes and get all image meta data ,like text extraction, and color and oths
     const flaskResponse = await axios.post(`${FLASK_API_URL}/analyze`, formData, {
       headers: formData.getHeaders(),
       maxContentLength: Infinity,
@@ -114,6 +116,9 @@ const processImage = async (file, imageMetadata) => {
     }).promise();
 
     console.log("✅ Image uploaded to S3:", s3Upload.Location);
+
+    //imagemetadata - coming form frontend form
+    //flaskresponseData = callin flaks service 
 
     // 3️⃣ **Prepare Data for MongoDB**
     const { basic_metrics } = flaskResponse.data;
@@ -154,6 +159,8 @@ const processImage = async (file, imageMetadata) => {
     throw error;
   }
 };
+
+///not in use
 const getAllImages = async () => {
   try {
     const images = await Diagram.find({ image_url: { $exists: true } });
