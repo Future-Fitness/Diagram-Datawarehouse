@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
@@ -8,7 +8,28 @@ export default function UploadForm() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [subjectType, setSubjectTypes] = useState([]);
+  const [diagramType, setDiagramTypes] = useState([]);
+
   const navigate = useNavigate();
+  const fetchSubjectTypes = async () => {
+    const res = await axios.get("http://localhost:4000/api/v1/SubjectTypes");
+    console.log(res.data.subjectTypes);
+    setSubjectTypes(res.data.subjectTypes);
+  };
+  const fetchDiagramTypes = async () => {
+    const res = await axios.get("http://localhost:4000/api/v1/diagramTypes");
+    console.log(res.data.diagramTypes);
+    setDiagramTypes(res.data.diagramTypes);
+  };
+  useEffect(() => {
+    fetchDiagramTypes();
+    // fetchSubjectTypes();
+  }, []);
+  useEffect(() => {
+    // fetchDiagramTypes();
+    fetchSubjectTypes();
+  }, []);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -36,8 +57,10 @@ export default function UploadForm() {
       const aspectRatio = (imgElement.width / imgElement.height).toFixed(2);
 
       let qualityScore = 0;
-      if (imgElement.width >= 1920 && imgElement.height >= 1080) qualityScore += 40;
-      else if (imgElement.width >= 1280 && imgElement.height >= 720) qualityScore += 30;
+      if (imgElement.width >= 1920 && imgElement.height >= 1080)
+        qualityScore += 40;
+      else if (imgElement.width >= 1280 && imgElement.height >= 720)
+        qualityScore += 30;
       else qualityScore += 20;
 
       const fileSizeNum = parseFloat(fileSize);
@@ -79,7 +102,11 @@ export default function UploadForm() {
   };
 
   // 📌 Handle Input Changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -100,9 +127,13 @@ export default function UploadForm() {
     Object.entries(formData).forEach(([key, value]) => form.append(key, value));
 
     try {
-      const response = await axios.post("http://127.0.0.1:4000/api/v1/analyze", form, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await axios.post(
+        "http://127.0.0.1:4000/api/v1/analyze",
+        form,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
       if (response.status === 200) {
         alert("Image & Metadata Saved Successfully!");
@@ -128,21 +159,38 @@ export default function UploadForm() {
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         {step === 1 && (
           <>
-            <h2 className="text-2xl font-bold text-center">Step 1: Upload Image</h2>
+            <h2 className="text-2xl font-bold text-center">
+              Step 1: Upload Image
+            </h2>
             <div className="mt-4 flex flex-col items-center">
               <label className="w-full flex flex-col items-center px-4 py-6 bg-blue-600 text-white rounded-lg shadow-lg tracking-wide uppercase cursor-pointer hover:bg-blue-700">
                 <FaCloudUploadAlt size={40} />
-                <span className="mt-2 text-base leading-normal">Select an image file</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                <span className="mt-2 text-base leading-normal">
+                  Select an image file
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
               </label>
-              {imagePreview && <img src={imagePreview} alt="Preview" className="mt-4 rounded-lg shadow-md" />}
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="mt-4 rounded-lg shadow-md"
+                />
+              )}
             </div>
           </>
         )}
 
         {step === 2 && (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <h2 className="text-2xl font-bold text-center">Step 2: Enter Image Metadata</h2>
+            <h2 className="text-2xl font-bold text-center">
+              Step 2: Enter Image Metadata
+            </h2>
 
             {/* Image Analysis Results */}
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
@@ -156,27 +204,56 @@ export default function UploadForm() {
               </div>
             </div>
 
-            <input type="text" name="title" required className="w-full p-2 border rounded" placeholder="Title" onChange={handleChange} />
-            <select name="subjectId" required className="w-full p-2 border rounded" onChange={handleChange}>
+            <input
+              type="text"
+              name="title"
+              required
+              className="w-full p-2 border rounded"
+              placeholder="Title"
+              onChange={handleChange}
+            />
+            <select
+              name="subjectId"
+              required
+              className="w-full p-2 border rounded"
+              onChange={handleChange}
+            >
               <option value="">Select Subject</option>
-              <option value="Mathematics">Mathematics</option>
-              <option value="Chemistry">Chemistry</option>
-              <option value="Engineering">Engineering</option>
+              {subjectType.map((subject, key) => (
+                <option key={key} value={subject.id}>
+                  {subject.name}
+                </option>
+              ))}
             </select>
 
             <div>
               <label className="font-semibold">Diagram Type</label>
-              <select name="diagramType" required className="w-full p-2 border rounded" onChange={handleChange}>
+              <select
+                name="diagramType"
+                required
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              >
                 <option value="">Select Type</option>
-                <option value="Bar Chart">Bar Chart</option>
+                {/* <option value="Bar Chart">Bar Chart</option>
                 <option value="Line Graph">Line Graph</option>
-                <option value="Molecule">Molecule</option>
+                <option value="Molecule">Molecule</option> */}
+                {diagramType.map((diagram, key) => (
+                  <option key={key} value={diagram.id}>
+                    {diagram.name}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div>
               <label className="font-semibold">Source Type</label>
-              <select name="sourceType" required className="w-full p-2 border rounded" onChange={handleChange}>
+              <select
+                name="sourceType"
+                required
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              >
                 <option value="">Select Source Type</option>
                 <option value="Book">Book</option>
                 <option value="Research Paper">Research Paper</option>
@@ -184,37 +261,50 @@ export default function UploadForm() {
               </select>
             </div>
 
-           
-
-          
-
-           
-
             <div>
               <label className="font-semibold">Source (Optional)</label>
-              <input type="text" name="source" className="w-full p-2 border rounded" onChange={handleChange} />
+              <input
+                type="text"
+                name="source"
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              />
             </div>
 
             <div>
               <label className="font-semibold">Page Number (Optional)</label>
-              <input type="number" name="pageNumber" className="w-full p-2 border rounded" onChange={handleChange} />
+              <input
+                type="number"
+                name="pageNumber"
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              />
             </div>
 
             <div>
               <label className="font-semibold">Author (Optional)</label>
-              <input type="text" name="author" className="w-full p-2 border rounded" onChange={handleChange} />
+              <input
+                type="text"
+                name="author"
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              />
             </div>
 
             <div>
               <label className="font-semibold">Additional Notes</label>
-              <textarea name="notes" className="w-full p-2 border rounded" onChange={handleChange}></textarea>
+              <textarea
+                name="notes"
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              ></textarea>
             </div>
 
-
-
-            
-
-            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg mt-4" disabled={uploading}>
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 rounded-lg mt-4"
+              disabled={uploading}
+            >
               {uploading ? "Uploading..." : "Submit"}
             </button>
           </form>
