@@ -1,34 +1,30 @@
 import cv2
 import re
-from paddleocr import PaddleOCR
+import pytesseract
 
-# Initialize PaddleOCR correctly
-ocr = PaddleOCR(use_angle_cls=True, lang="en")
+# If using Windows, specify the path to Tesseract (adjust this path if needed)
+# pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 # ✅ Function to Extract Text from Image
 def extract_text(image_path):
     """
-    Extracts textual content from an image using PaddleOCR.
+    Extracts textual content from an image using Tesseract OCR.
 
     :param image_path: Path to the image file.
-    :return: Extracted text as a string.
+    :return: Extracted text as a string or an error message.
     """
     try:
-        # Ensure image exists
         image = cv2.imread(image_path)
         if image is None:
             return {"error": "Failed to load image. Check file path."}
 
-        results = ocr.ocr(image_path)  # ✅ Correct usage (pass file path)
+        # Convert image to grayscale for better OCR results
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        extracted_text = []
-        for line in results:
-            if isinstance(line, list):  # Ensure valid format
-                for word_info in line:
-                    if isinstance(word_info, list) and len(word_info) > 1:
-                        extracted_text.append(word_info[1][0])  # Extract detected text
+        # Run OCR using Tesseract
+        text = pytesseract.image_to_string(gray)
 
-        return " ".join(extracted_text) if extracted_text else {"error": "No text detected."}
+        return text.strip() if text.strip() else {"error": "No text detected."}
 
     except Exception as e:
         return {"error": str(e)}
@@ -36,31 +32,30 @@ def extract_text(image_path):
 # ✅ Function to Extract Mathematical Symbols
 def extract_math_symbols(image_path):
     """
-    Extracts mathematical symbols and operators from an image.
+    Extracts mathematical symbols and operators from an image using Tesseract OCR.
 
     :param image_path: Path to the image file.
     :return: List of detected mathematical symbols.
     """
     try:
-        # Ensure image exists
         image = cv2.imread(image_path)
         if image is None:
             return {"error": "Failed to load image. Check file path."}
 
-        results = ocr.ocr(image_path)  # ✅ Correct usage
+        # Convert image to grayscale for better OCR results
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        math_symbols_pattern = r'[∑∫∆π±√÷×∂≠≈≤≥∞∝∑∏∂∃∄∅∇∠∧∨⊥⊂⊆⊄⊃⊇∪∩⊕⊗⊖⊛⊚⊘⊙]'
-        extracted_symbols = []
+        # Run OCR using Tesseract
+        extracted_text = pytesseract.image_to_string(gray)
 
-        for line in results:
-            if isinstance(line, list):  # Ensure valid format
-                for word_info in line:
-                    if isinstance(word_info, list) and len(word_info) > 1:
-                        text = word_info[1][0]
-                        symbols = re.findall(math_symbols_pattern, text)
-                        extracted_symbols.extend(symbols)
+        # Define regex pattern for mathematical symbols
+        math_symbols_pattern = r'[∑∫∆π±√÷×∂≠≈≤≥∞∝∏∂∃∄∅∇∠∧∨⊥⊂⊆⊄⊃⊇∪∩⊕⊗⊖⊛⊚⊘⊙∈∉∋∌∑∫∂∇∅∥∦⊢⊣⊤⊥⊦⊨⊩⊬⊭⊯⊰⊱⊲⊳⊴⊵⊶⊷∸∹∺∻∼∽∾≀≁≂≃≄≅≆≇≈≉≊≋≌≍≎≏≒≓≔≕≖≗≘≙≚≛≜≝≞≟≠≡≢≤≥≦≧≨≩≪≫≬≭≮≯≰≱⊂⊃⊆⊇⊊⊋⊌⊍⊎⊏⊐⊑⊒]'
+
+        # Find mathematical symbols in the extracted text
+        extracted_symbols = re.findall(math_symbols_pattern, extracted_text)
 
         return list(set(extracted_symbols)) if extracted_symbols else {"error": "No mathematical symbols detected."}
 
     except Exception as e:
         return {"error": str(e)}
+

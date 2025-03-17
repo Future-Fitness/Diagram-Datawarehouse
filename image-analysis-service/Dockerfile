@@ -9,6 +9,12 @@ RUN apt-get update && apt-get install -y \
     libsm6 \
     libxext6 \
     libxrender-dev \
+    build-essential \
+    gfortran \
+    liblapack-dev \
+    libopenblas-dev \
+    python3-dev \
+    python3-distutils \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
