@@ -32,8 +32,30 @@ const resolvers = {
         throw new Error("Error fetching diagram");
       }
     },
+    // fetch all images with subject type
+    getAllDiagramsBySubjectType: async (_, { subjectId, page, limit }) => {
+      try {
+        limit = limit || 10;
+        page = page || 1;
+        const total = await Diagram.countDocuments({ subjectId });
+        const totalPages = Math.ceil(total / limit);
+        const diagrams = await Diagram.find({ subjectId })
+          .sort({ created_at: -1 })
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .populate("subjectId");
+        return {
+          diagrams,
+          total,
+          totalPages,
+          currentPage: page,
+        };
+      } catch (error) {
+        console.log(error);
+        throw new Error("Error fetching diagrams");
+      }
+    },
   },
-  // fetch  
 };
 
 module.exports = resolvers;
