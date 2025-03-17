@@ -5,7 +5,7 @@ import pytesseract
 import os
 from utils.image_processing import analyze_image_quality
 import logging
-from text_extract import extract_text, extract_math_symbols
+from utils.text_extract import extract_text, extract_math_symbols
 
 
 app = Flask(__name__)

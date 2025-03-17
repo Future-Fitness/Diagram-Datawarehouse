@@ -25,8 +25,7 @@ services:
     depends_on:
       diagram-flask:
         condition: service_healthy
-      diagram-postgres:
-        condition: service_healthy
+
       diagram-redis:
         condition: service_healthy  # ✅ Ensures Redis is ready before backend starts
 
@@ -47,25 +46,6 @@ services:
       timeout: 10s
       retries: 3
 
-  diagram-postgres:
-    container_name: diagram-postgres
-    image: postgres:13-alpine
-    restart: always
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=diagram
-      - POSTGRES_PASSWORD=diagram123
-      - POSTGRES_DB=diagramdb
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U diagram -d diagramdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   diagram-redis:  # ✅ New Redis service
     container_name: diagram-redis
@@ -84,5 +64,5 @@ services:
       retries: 5
 
 volumes:
-  postgres-data:
+
   redis-data:  # ✅ Volume for Redis persistence
