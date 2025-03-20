@@ -1,20 +1,19 @@
 const { gql } = require("apollo-server-express");
 
 const typeDefs = gql`
-type Subject {
-  _id: ID!
-  name: String!
-  description: String
-  createdAt: String!
-}
+  type Subject {
+    _id: ID!
+    name: String!
+    description: String
+    createdAt: String!
+  }
 
   type Diagram {
-    id: ID!
+    _id: ID!
     image_url: String!
     filename: String!
-    upload_date: String!
     title: String!
-    subjectId: Subject
+    subjectId: Subject!
     diagramTypeId: String!
     sourceType: String!
     pageNumber: Int
@@ -24,7 +23,6 @@ type Subject {
     category: String!
     sub_category: String
     tags: [String]
-
     file_info: FileInfo
     mathematical_expressions: [MathExpression]
     extracted_symbols: [ExtractedSymbol]
@@ -99,8 +97,8 @@ type Subject {
     image_url: String!
     filename: String!
     title: String!
-    subjectId: String!
-    diagramTypeId: String!
+    subjectId: ID! # ✅ Changed to ID type
+    diagramTypeId: ID! # ✅ Changed to ID type
     sourceType: String!
     pageNumber: Int
     author: String
@@ -114,13 +112,10 @@ type Subject {
   type Query {
     getAllDiagrams(page: Int, limit: Int): DiagramPagination
     getDiagramById(id: ID!): Diagram
-    getAllDiagramsBySubjectType(page: Int, limit: Int): DiagramPagination
+    getAllDiagramsBySubjectType(subjectId: ID!, page: Int, limit: Int): DiagramPagination 
   }
 
-  type Mutation {
-    addDiagram(input: AddDiagramInput): Diagram
-    deleteDiagram(id: ID!): String
-  }
+
 `;
 
 module.exports = typeDefs;

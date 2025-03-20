@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const Diagram = require("../models/Diagram");
 
 const resolvers = {
@@ -12,7 +13,8 @@ const resolvers = {
           .sort({ created_at: -1 }) // Sort by newest first
           .skip((page - 1) * limit)
           .limit(limit)
-          .populate("subjectId");
+          .populate("subjectId")
+
           
           
 
@@ -36,17 +38,23 @@ const resolvers = {
       }
     },
     // fetch all images with subject type
-    getAllDiagramsBySubjectType: async (_, { subjectId, page, limit }) => {
+    getAllDiagramsBySubjectType: async (_, { subjectId, page = 1, limit = 10 }) => {
       try {
-        limit = limit || 10;
-        page = page || 1;
+        // ✅ Ensure subjectId is converted to ObjectId
+        if (!mongoose.Types.ObjectId.isValid(subjectId)) {
+          throw new Error("Invalid subjectId format");
+        }
+
         const total = await Diagram.countDocuments({ subjectId });
         const totalPages = Math.ceil(total / limit);
-        const diagrams = await Diagram.find({ subjectId })
-          .sort({ created_at: -1 })
+
+        const diagrams = await Diagram.find({ subjectId: new mongoose.Types.ObjectId(subjectId) })
+          .sort({ created_at: -1 }) // ✅ Fixed field name
           .skip((page - 1) * limit)
           .limit(limit)
-          .populate("subjectId");
+          .populate("subjectId")
+
+
         return {
           diagrams,
           total,
@@ -54,11 +62,10 @@ const resolvers = {
           currentPage: page,
         };
       } catch (error) {
-        console.log(error);
-        throw new Error("Error fetching diagrams");
+        console.error("❌ Error fetching diagrams by subject:", error.message);
+        throw new Error("Error fetching diagrams by subject");
       }
     },
   },
 };
-
 module.exports = resolvers;

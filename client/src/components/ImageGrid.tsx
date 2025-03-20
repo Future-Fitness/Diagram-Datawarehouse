@@ -24,7 +24,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, loading, error, onImageCl
           <img src={img.image_url} alt={img.title || "Image"} className="w-full h-48 object-cover" />
           <div className="p-4">
             <h2 className="font-semibold text-lg">{img.title || "Untitled"}</h2>
-            <p className="text-sm text-gray-500">{img.subjectId.name || "Uncategorized"}</p>
+            <p className="text-sm text-gray-500">{img?.subjectId?.name || "Uncategorized"}</p>
           </div>
         </div>
       ))
