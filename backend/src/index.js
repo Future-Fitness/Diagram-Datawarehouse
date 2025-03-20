@@ -55,7 +55,7 @@ app.use("/api", routes);
 async function startServer() {
   try {
     await connectDB();
-    await checkS3Connection()
+  await checkS3Connection()
 
     const server = new ApolloServer({
       typeDefs,

@@ -33,11 +33,7 @@ const DiagramSchema = new mongoose.Schema({
   },
 
   // **Mathematical Expressions & Extracted Symbols (Removed Indexing)**
-  mathematical_expressions: [
-    {
-      expression: { type: String }, // ❌ No Indexing
-    },
-  ],
+
   extracted_symbols: [
     {
       symbol: { type: String }, // ❌ No Indexing
@@ -67,9 +63,9 @@ const DiagramSchema = new mongoose.Schema({
 
   quality_rating: { type: String, enum: ["Low", "Medium", "High"], required: true, default: "Medium" },
 
-  extracted_text: { type: String },
+  extracted_text: { type:String },
 
-  searchable_text: { type: String },
+
 
   created_at: { type: Date, default: Date.now },
 });

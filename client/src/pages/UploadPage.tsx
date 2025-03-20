@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { BASE_URL } from "../App";
+import { toast } from "react-toastify";
 
 export default function UploadForm() {
   const [step, setStep] = useState(1);
@@ -93,7 +94,7 @@ export default function UploadForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!imageFile) {
-      alert("Please upload an image first.");
+      toast.error("no image")
       return;
     }
 
@@ -108,13 +109,13 @@ export default function UploadForm() {
       });
 
       if (response.status === 200) {
-        alert("Image & Metadata Saved Successfully!");
+        toast.success("Image & Metadata Saved Successfully!");
       } else {
-        alert("Upload Failed!");
+        toast.error("Upload Failed!");
       }
     } catch (error) {
       console.error("Upload Error:", error);
-      // alert("Error uploading the image.");
+      // toast.success("Error uploading the image.");
     }
     setUploading(false);
   };
@@ -178,7 +179,7 @@ export default function UploadForm() {
               <option value="">Select Subject</option>
               {
                 subject.map((i)=>(
-                  <option value={i.name}>{i.name}</option>
+                  <option value={i._id}>{i.name}</option>
                 ))
               }
 
@@ -190,7 +191,7 @@ export default function UploadForm() {
                 <option value="">Select Type</option>
               {
                 diagram.map((i)=>(
-                  <option value={i.category}>{i.category}</option>
+                  <option value={i._id}>{i.category}</option>
                 ))
               }
           

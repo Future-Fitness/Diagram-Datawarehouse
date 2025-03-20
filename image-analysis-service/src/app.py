@@ -6,7 +6,7 @@ import os
 from utils.image_processing import analyze_image_quality
 import logging
 from utils.text_extract import extract_text, extract_math_symbols
-
+import cv2
 
 app = Flask(__name__)
 
@@ -135,11 +135,17 @@ def analyze():
     image.save(image_path)
 
     try:
-        text_result = extract_text(image_path)
+        text_result = extract_text(image_path).replace("\n", " ") 
         symbols_result = extract_math_symbols(image_path)
 
-        print(text_result, '__')
-        print(symbols_result)
+        print(text_result, '__141')
+        print(symbols_result, '142')
+        if not isinstance(text_result, dict):
+            text_result = {"text": text_result}  # Wrap string in a dict
+
+        if not isinstance(symbols_result, dict):
+            symbols_result = {"symbols": symbols_result} 
+        
 
         # Get Image Quality Metrics
         quality_metrics = analyze_image_quality(image_path)
@@ -156,7 +162,10 @@ def analyze():
                 "size_mb": os.path.getsize(image_path) / (1024 * 1024)
             },
             "quality_rating": quality_label,
-            **quality_metrics
+            **quality_metrics,
+            'text_result':text_result,
+            'symbols_result':symbols_result
+
         }
         
         return jsonify(result)
