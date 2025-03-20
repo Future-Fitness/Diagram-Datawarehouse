@@ -1,13 +1,20 @@
 const { gql } = require("apollo-server-express");
 
 const typeDefs = gql`
+type Subject {
+  _id: ID!
+  name: String!
+  description: String
+  createdAt: String!
+}
+
   type Diagram {
     id: ID!
     image_url: String!
     filename: String!
     upload_date: String!
     title: String!
-    subjectId: String!
+    subjectId: Subject
     diagramTypeId: String!
     sourceType: String!
     pageNumber: Int

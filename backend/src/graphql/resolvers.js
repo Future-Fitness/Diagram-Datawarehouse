@@ -11,7 +11,10 @@ const resolvers = {
         const diagrams = await Diagram.find()
           .sort({ created_at: -1 }) // Sort by newest first
           .skip((page - 1) * limit)
-          .limit(limit);
+          .limit(limit)
+          .populate("subjectId");
+          
+          
 
         return {
           diagrams,

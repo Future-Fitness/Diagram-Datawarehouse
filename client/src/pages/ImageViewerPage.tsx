@@ -7,13 +7,19 @@ import SearchBar from "../components/SearchBar";
 
 const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql"; // Change this to your API URL
 
-const GET_DIAGRAMS_QUERY = gql`
+const GET_ALL_DIAGRAMS_QUERY = gql`
   query GetAllDiagrams($page: Int, $limit: Int) {
     getAllDiagrams(page: $page, limit: $limit) {
       diagrams {
         id
         title
         image_url
+        subjectId {
+        _id
+        name
+        description
+
+      }
         created_at
       }
       total
@@ -23,46 +29,38 @@ const GET_DIAGRAMS_QUERY = gql`
   }
 `;
 
-// ✅ Function to Fetch Data Using `graphql-request`
 const fetchDiagrams = async ({ queryKey }: any) => {
   const [, page, limit] = queryKey;
-  return request(GRAPHQL_ENDPOINT, GET_DIAGRAMS_QUERY, { page, limit })
+  return request(GRAPHQL_ENDPOINT, GET_ALL_DIAGRAMS_QUERY, { page, limit })
     .then((data) => data.getAllDiagrams);
 };
 
-export default function ViewAllImages() {
+export default function AllDiagramsPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState<string>("");
 
-  // ✅ Fetch images with pagination (no category filtering)
   const { data: imagesData, isLoading, error } = useQuery({
-    queryKey: ["diagrams", 1, 10], // ✅ Fetch images with pagination
+    queryKey: ["diagrams", 1, 10],
     queryFn: fetchDiagrams,
     staleTime: 1000 * 60 * 5,
   });
 
-  // ✅ Filter only based on search input
   const filteredImages = imagesData?.diagrams?.filter((img) => 
     img.title?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
+  const handleImageClick = (subjectId: string) => {
+    navigate(`/subject-diagrams/${subjectId}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      {/* 🔙 Back Button */}
-      <button
-        onClick={() => navigate(-1)}
-        className="absolute top-6 left-6 px-3 py-2 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition-colors"
-      >
-        Back
-      </button>
-
-      {/* 🔹 Page Title */}
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-center">View All Images</h1>
+        <h1 className="text-3xl font-bold text-center">View All Diagrams</h1>
       </header>
 
       <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <ImageGrid images={filteredImages} loading={isLoading} error={error?.message} />
+      <ImageGrid images={filteredImages} loading={isLoading} error={error?.message} onImageClick={handleImageClick} />
     </div>
   );
-}
+} 

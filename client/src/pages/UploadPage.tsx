@@ -111,7 +111,7 @@ export default function UploadForm() {
       });
 
       if (response.status === 200) {
-        toast.success("Image & Metadata Saved Successfully!");
+        toast.success("Uploaded successfully")
       } else {
         toast.error("Upload Failed!");
       }

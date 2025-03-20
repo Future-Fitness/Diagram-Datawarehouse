@@ -135,11 +135,12 @@ def analyze():
     image.save(image_path)
 
     try:
-        text_result = extract_text(image_path).replace("\n", " ") 
+        text_result = extract_text(image_path)
+        text_result= text_result.replace("\n", " ") 
         symbols_result = extract_math_symbols(image_path)
 
-        print(text_result, '__141')
-        print(symbols_result, '142')
+        # print(text_result, '__141')
+        # print(symbols_result, '142')
         if not isinstance(text_result, dict):
             text_result = {"text": text_result}  # Wrap string in a dict
 
