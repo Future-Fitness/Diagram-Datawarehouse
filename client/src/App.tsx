@@ -1,12 +1,12 @@
 
 import './App.css'
-import { Route, Router, Routes } from 'react-router-dom'
+import { Route,  Routes } from 'react-router-dom'
 import Home from './pages/Home'
 import UploadForm from './pages/UploadPage'
 import ViewAllImages from './pages/ImageViewerPage'
 import Auth from './pages/Auth'
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import SubjectDiagramsPage from './pages/categories'
+
 
 const queryClient = new QueryClient();
 function App() {
@@ -21,7 +21,7 @@ function App() {
         <Route path="/signup" element={<Auth isSignUp= {true} />} />
         <Route path="/upload" element={<UploadForm />} />
         <Route path="/imagecollection" element={<ViewAllImages />} />
-        <Route path="/categories" element={<SubjectDiagramsPage />} />
+
       </Routes>
 
     </QueryClientProvider>
