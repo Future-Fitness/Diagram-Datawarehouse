@@ -31,7 +31,7 @@ const navigate = useNavigate()
             <p className="mt-2 text-gray-600">Fast and secure image storage.</p>
           </div>
           <div className="bg-white shadow-lg p-6 rounded-lg">
-            <h3 className="font-semibold text-lg">PostgreSQL & Prisma</h3>
+            <h3 className="font-semibold text-lg">MongoDbQL & Prisma</h3>
             <p className="mt-2 text-gray-600">Structured metadata storage.</p>
           </div>
           <div className="bg-white shadow-lg p-6 rounded-lg">
@@ -68,7 +68,7 @@ const navigate = useNavigate()
           <div className="text-center">
             <span className="text-4xl text-orange-600">2</span>
             <h3 className="mt-2 font-semibold text-lg">Store Metadata</h3>
-            <p className="text-gray-600">Metadata is stored in PostgreSQL.</p>
+            <p className="text-gray-600">Metadata is stored in MongoDbQL.</p>
           </div>
           <div className="text-center">
             <span className="text-4xl text-orange-600">3</span>
