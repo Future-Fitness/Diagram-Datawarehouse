@@ -22,12 +22,7 @@ services:
       - REDIS_URL=redis://diagram-redis:6379  # ✅ New Redis connection URL
     networks:
       - app-network
-    depends_on:
-      diagram-flask:
-        condition: service_healthy
-
-      diagram-redis:
-        condition: service_healthy  # ✅ Ensures Redis is ready before backend starts
+    
 
   diagram-flask:
     container_name: diagram-flask
@@ -41,10 +36,12 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5001"]
       interval: 30s
-      timeout: 10s
       retries: 3
+      start_period: 30s
+      timeout: 10s
+
 
 
   diagram-redis:  # ✅ New Redis service

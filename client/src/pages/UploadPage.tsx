@@ -1,13 +1,16 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { BASE_URL } from "../App";
 
 export default function UploadForm() {
   const [step, setStep] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [subject,setSubject ] = useState([])
+  const [diagram,setDiagram ]= useState([])
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -116,6 +119,20 @@ export default function UploadForm() {
     setUploading(false);
   };
 
+  const fetchoptions = async()=>{
+    const  diagram = await axios.get(`${BASE_URL}/diagramTypes`)
+    setDiagram(diagram.data.diagramTypes)
+    console.log("🚀 ~ fetchoptions ~ diagram:", diagram)
+    const subject = await axios.get(`${BASE_URL}/SubjectTypes`)
+    setSubject(subject.data.subjectTypes)
+    console.log("🚀 ~ fetchoptions ~ subject:", subject.data)
+
+  }
+  useEffect(()=>{
+    fetchoptions()
+
+  },[])
+
   return (
     <div className="min-h-screen bg-gray-100 flex justify-center items-center p-6 bg-blue-200 overflow-y-hidden">
       <button
@@ -159,18 +176,24 @@ export default function UploadForm() {
             <input type="text" name="title" required className="w-full p-2 border rounded" placeholder="Title" onChange={handleChange} />
             <select name="subjectId" required className="w-full p-2 border rounded" onChange={handleChange}>
               <option value="">Select Subject</option>
-              <option value="Mathematics">Mathematics</option>
-              <option value="Chemistry">Chemistry</option>
-              <option value="Engineering">Engineering</option>
+              {
+                subject.map((i)=>(
+                  <option value={i.name}>{i.name}</option>
+                ))
+              }
+
             </select>
 
             <div>
               <label className="font-semibold">Diagram Type</label>
               <select name="diagramType" required className="w-full p-2 border rounded" onChange={handleChange}>
                 <option value="">Select Type</option>
-                <option value="Bar Chart">Bar Chart</option>
-                <option value="Line Graph">Line Graph</option>
-                <option value="Molecule">Molecule</option>
+              {
+                diagram.map((i)=>(
+                  <option value={i.category}>{i.category}</option>
+                ))
+              }
+          
               </select>
             </div>
 
