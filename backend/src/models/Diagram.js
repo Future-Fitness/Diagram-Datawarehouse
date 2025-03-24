@@ -7,16 +7,17 @@ const DiagramSchema = new mongoose.Schema({
   upload_date: { type: Date, default: Date.now },
   
   title: { type: String, required: true }, 
-  subjectId: { type: String, required: true },  // Maps to subject domain
-  diagramTypeId: { type: String, required: true }, // Maps to diagram type
+  subjectId: { type: mongoose.Schema.Types.ObjectId, ref: "Subject", required: true, index: true }, // Linked Subject
+  diagramTypeId: { type: mongoose.Schema.Types.ObjectId, ref: "DiagramType", required: true, index: true }, // Linked Diagram Type
+  sub_category: { type: String, default: "General" },
   sourceType: { type: String, required: true },  // E.g., "Book", "Research Paper"
   pageNumber: { type: Number, required: false },  // Optional field
   author: { type: String, required: false },  // Optional field
   notes: { type: String, required: false },  // Optional field
   // **Categorization**
-  subjects: [{ type: String }], // E.g., ["Mathematics", "Science", "CS"]
-  category: { type: String, required: true },
-  sub_category: { type: String, default: "General" },
+  subjects: [{ type: String, required: true }], // E.g., ["Mathematics", "Science", "CS"]
+
+ 
   tags: [{ type: String }],
 
   // **Metadata Extraction**
@@ -32,11 +33,7 @@ const DiagramSchema = new mongoose.Schema({
   },
 
   // **Mathematical Expressions & Extracted Symbols (Removed Indexing)**
-  mathematical_expressions: [
-    {
-      expression: { type: String }, // ❌ No Indexing
-    },
-  ],
+
   extracted_symbols: [
     {
       symbol: { type: String }, // ❌ No Indexing
@@ -66,9 +63,9 @@ const DiagramSchema = new mongoose.Schema({
 
   quality_rating: { type: String, enum: ["Low", "Medium", "High"], required: true, default: "Medium" },
 
-  extracted_text: { type: String },
-  related_diagrams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Diagram" }],
-  searchable_text: { type: String },
+  extracted_text: { type:String },
+
+
 
   created_at: { type: Date, default: Date.now },
 });

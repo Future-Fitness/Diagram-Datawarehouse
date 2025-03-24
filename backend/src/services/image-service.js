@@ -10,6 +10,7 @@ const FLASK_API_URL = process.env.FLASK_API_URL || "http://localhost:5001";
 
 // ✅ Function to Save Analysis Data to MongoDB
 async function saveAnalysisData(imageData, analysisData) {
+
   try {
     const { basic_metrics, color_analysis, quality_scores, quality_rating } = analysisData;
 
@@ -58,8 +59,10 @@ async function saveAnalysisData(imageData, analysisData) {
 
       quality_rating: quality_rating || "Medium",
 
-      extracted_text: analysisData.extracted_text || "",
-      extracted_symbols: analysisData.extracted_symbols || [],
+      extracted_text: analysisData.text_result || "\n",  // ✅ Corrected
+      extracted_symbols: analysisData.extracted_symbols || [],  // ✅ Corrected
+    
+      
       related_diagrams: [],
       searchable_text: `${imageData.fileName} ${imageData.category} ${imageData.tags.join(" ")} ${
         analysisData.extracted_text || ""
@@ -90,12 +93,15 @@ const processImage = async (file, imageMetadata) => {
       contentType: file.mimetype,
     });
 
+
+    //calling flask api service which analyzes and get all image meta data ,like text extraction, and color and oths
     const flaskResponse = await axios.post(`${FLASK_API_URL}/analyze`, formData, {
       headers: formData.getHeaders(),
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
       timeout: 30000,
     });
+    console.log("🚀 ~ processImage ~ flaskResponse.data:", flaskResponse.data)
 
     if (!flaskResponse || !flaskResponse.data ) {
       throw new Error("❌ No valid response from Flask API");
@@ -115,9 +121,12 @@ const processImage = async (file, imageMetadata) => {
 
     console.log("✅ Image uploaded to S3:", s3Upload.Location);
 
+    //imagemetadata - coming form frontend form
+    //flaskresponseData = callin flaks service 
+
     // 3️⃣ **Prepare Data for MongoDB**
     const { basic_metrics } = flaskResponse.data;
-    console.log("🚀 ~ processImage ~ flaskResponse.data:", flaskResponse.data)
+    console.log("🚀 ~ processImage ~ flaskResponse.data2:", flaskResponse.data.text_result)
 
     const imageData = {
       fileName: file.originalname,
@@ -128,8 +137,8 @@ const processImage = async (file, imageMetadata) => {
 
       // ✅ Mapping Metadata Fields
       title: imageMetadata.title || "Untitled",
-      subjectId: imageMetadata?.subjectId || "Unknown",
-      diagramTypeId: imageMetadata?.diagramTypeId || "General",
+      subjectId: imageMetadata?.subjectId ,
+      diagramTypeId: imageMetadata.diagramType ,
       sourceType: imageMetadata?.sourceType || "Unknown",
       pageNumber: imageMetadata?.pageNumber ? parseInt(imageMetadata?.pageNumber, 10) : null,
       author: imageMetadata?.author || "Unknown",
@@ -138,6 +147,11 @@ const processImage = async (file, imageMetadata) => {
       subjects: imageMetadata?.subjects || [],
       category: imageMetadata?.category || "Uncategorized",
       tags: imageMetadata?.tags || [],
+
+      extracted_text: flaskResponse.data.text_result || "\n",
+      extracted_symbols: flaskResponse.data.symbols_result || []
+
+
     };
 
     // 4️⃣ **Save Data to MongoDB**
@@ -154,6 +168,8 @@ const processImage = async (file, imageMetadata) => {
     throw error;
   }
 };
+
+///not in use
 const getAllImages = async () => {
   try {
     const images = await Diagram.find({ image_url: { $exists: true } });

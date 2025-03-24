@@ -1,13 +1,18 @@
 import axios from "axios";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { BASE_URL } from "../App";
+import { toast } from "react-toastify";
+import { motion } from "framer-motion";
 
 export default function UploadForm() {
   const [step, setStep] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [subject, setSubject] = useState([]);
+  const [diagram, setDiagram] = useState([]);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -18,6 +23,7 @@ export default function UploadForm() {
     pageNumber: "",
     author: "",
     notes: "",
+    tags: "",
   });
 
   const [imageQuality, setImageQuality] = useState({
@@ -90,7 +96,7 @@ export default function UploadForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!imageFile) {
-      alert("Please upload an image first.");
+      toast.error("No image selected");
       return;
     }
 
@@ -100,77 +106,101 @@ export default function UploadForm() {
     Object.entries(formData).forEach(([key, value]) => form.append(key, value));
 
     try {
-      const response = await axios.post("http://127.0.0.1:4000/api/v1/analyze", form, {
+      const response = await axios.post(`${BASE_URL}/analyze`, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       if (response.status === 200) {
-        alert("Image & Metadata Saved Successfully!");
+        toast.success("Uploaded successfully")
       } else {
-        alert("Upload Failed!");
+        toast.error("Upload Failed!");
       }
     } catch (error) {
       console.error("Upload Error:", error);
-      // alert("Error uploading the image.");
     }
     setUploading(false);
   };
 
+  const fetchOptions = async () => {
+    try {
+      const diagramRes = await axios.get(`${BASE_URL}/diagramTypes`);
+      setDiagram(diagramRes.data.diagramTypes);
+
+      const subjectRes = await axios.get(`${BASE_URL}/SubjectTypes`);
+      setSubject(subjectRes.data.subjectTypes);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Failed to load options.");
+    }
+  };
+
+  useEffect(() => {
+    fetchOptions();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center items-center p-6 bg-blue-200 overflow-y-hidden">
-      <button
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-r from-blue-500 to-indigo-600">
+      <motion.button
         onClick={() => navigate(-1)}
-        className="absolute top-6 left-6 px-3 py-2 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition-colors"
+        className="absolute top-6 left-6 px-4 py-2 bg-white text-blue-600 rounded-md shadow-md hover:bg-gray-200 transition"
+        whileHover={{ scale: 1.1 }}
       >
         Back
-      </button>
+      </motion.button>
 
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+      <motion.div
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md"
+      >
         {step === 1 && (
           <>
-            <h2 className="text-2xl font-bold text-center">Step 1: Upload Image</h2>
+            <h2 className="text-2xl font-bold text-center text-gray-800">Step 1: Upload Image</h2>
             <div className="mt-4 flex flex-col items-center">
-              <label className="w-full flex flex-col items-center px-4 py-6 bg-blue-600 text-white rounded-lg shadow-lg tracking-wide uppercase cursor-pointer hover:bg-blue-700">
+              <label className="w-full flex flex-col items-center px-6 py-8 bg-blue-500 text-white rounded-lg shadow-lg cursor-pointer hover:bg-blue-700 transition">
                 <FaCloudUploadAlt size={40} />
-                <span className="mt-2 text-base leading-normal">Select an image file</span>
+                <span className="mt-2 text-base">Select an image file</span>
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
               </label>
-              {imagePreview && <img src={imagePreview} alt="Preview" className="mt-4 rounded-lg shadow-md" />}
+              {imagePreview && <img src={imagePreview} alt="Preview" className="mt-4 rounded-lg shadow-md w-full" />}
             </div>
           </>
         )}
 
         {step === 2 && (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <h2 className="text-2xl font-bold text-center">Step 2: Enter Image Metadata</h2>
-
-            {/* Image Analysis Results */}
-            <div className="bg-gray-50 p-4 rounded-lg mb-4">
-              <h3 className="font-semibold mb-2">Image Analysis Results:</h3>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                {Object.entries(imageQuality).map(([key, value]) => (
-                  <div key={key}>
-                    {key.replace(/([A-Z])/g, " $1")}: {value}
-                  </div>
-                ))}
-              </div>
-            </div>
+          <motion.form
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            onSubmit={handleSubmit}
+            className="space-y-4"
+          >
+            <h2 className="text-2xl font-bold text-center text-gray-800">Step 2: Enter Image Metadata</h2>
 
             <input type="text" name="title" required className="w-full p-2 border rounded" placeholder="Title" onChange={handleChange} />
+
             <select name="subjectId" required className="w-full p-2 border rounded" onChange={handleChange}>
               <option value="">Select Subject</option>
-              <option value="Mathematics">Mathematics</option>
-              <option value="Chemistry">Chemistry</option>
-              <option value="Engineering">Engineering</option>
+              {subject.map((i) => (
+                <option key={i._id} value={i._id}>{i.name}</option>
+              ))}
             </select>
+
+            <textarea name="notes" className="w-full p-2 border rounded" placeholder="Additional Notes" onChange={handleChange}></textarea>
+
+
 
             <div>
               <label className="font-semibold">Diagram Type</label>
               <select name="diagramType" required className="w-full p-2 border rounded" onChange={handleChange}>
                 <option value="">Select Type</option>
-                <option value="Bar Chart">Bar Chart</option>
-                <option value="Line Graph">Line Graph</option>
-                <option value="Molecule">Molecule</option>
+              {
+                diagram.map((i)=>(
+                  <option value={i._id}>{i.category}</option>
+                ))
+              }
+          
               </select>
             </div>
 
@@ -211,15 +241,17 @@ export default function UploadForm() {
             </div>
 
 
-
-            
-
-            <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-lg mt-4" disabled={uploading}>
+            <motion.button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-2 rounded-lg mt-4"
+              disabled={uploading}
+              whileHover={{ scale: 1.05 }}
+            >
               {uploading ? "Uploading..." : "Submit"}
-            </button>
-          </form>
+            </motion.button>
+          </motion.form>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }
