@@ -135,8 +135,25 @@ def analyze():
     image.save(image_path)
 
     try:
-        text_result = extract_text(image_path)
-        text_result= text_result.replace("\n", " ") 
+        try:
+            text_result = extract_text(image_path)
+            text_result = text_result.replace("\n", " ") 
+        except Exception as e:
+            text_result = {"null": f"NUll"}
+
+        try:
+            symbols_result = extract_math_symbols(image_path)
+        except Exception as e:
+            symbols_result = {"null": f"NUll"}
+
+# Normalize to dict if necessary
+        if not isinstance(text_result, dict):
+            text_result = {"text": text_result}
+
+        if not isinstance(symbols_result, dict):
+            symbols_result = {"symbols": symbols_result}
+        
+        
         symbols_result = extract_math_symbols(image_path)
 
         # print(text_result, '__141')
