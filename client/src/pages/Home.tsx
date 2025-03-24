@@ -35,6 +35,9 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="py-16 px-6 max-w-6xl mx-auto">
+
+      
+
         <h2 className="text-3xl font-bold text-center mb-2 text-cyan-400">Key Technologies</h2>
         <p className="text-center text-slate-400 mb-12 max-w-2xl mx-auto">
           We've integrated cutting-edge technologies to create a powerful diagram management system
@@ -71,6 +74,9 @@ export default function Home() {
             </p>
           </div>
         </div>
+        <section className="flex justify-center items-center">
+          <img src="../../public/image.png" alt="Diagram" className="rounded-lg h-200 w-full shadow-xl mb-8" />
+        </section>
       </section>
 
       {/* How It Works Section */}
@@ -175,7 +181,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <a 
-              href="https://github.com/yourusername/diagram-warehouse" 
+              href="https://github.com/Future-Fitness/Diagram-Datawarehouse" 
               target="_blank" 
               rel="noopener noreferrer"
               className="bg-slate-800 p-6 rounded-xl shadow-xl border border-slate-700 hover:border-cyan-500 transition-colors group"
