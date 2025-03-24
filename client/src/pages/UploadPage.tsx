@@ -114,6 +114,18 @@ export default function UploadForm() {
 
       if (response.status === 200) {
         toast.success("Uploaded successfully");
+        setFormData({
+          title: "",
+          subjectId: "",
+          diagramTypeId: "",
+          sourceType: "",
+          pageNumber: "",
+          author: "",
+          notes: "",
+          tags: "",
+          source: "",
+        })
+        setStep(1);
       } else {
         toast.error("Upload Failed!");
       }
