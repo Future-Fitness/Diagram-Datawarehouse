@@ -27,7 +27,7 @@ function App() {
     </QueryClientProvider>
   )
 }
-const URL='http://3.96.138.33:4000/'
+
 
 export const BASE_URL = 'http://3.96.138.33:4000/api/v1'
 export const GraphQL_URL = 'http://3.96.138.33:4000/graphql/api/v1'
