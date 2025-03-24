@@ -4,6 +4,12 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    // Ensure proper MIME types for assets
+    assetsInlineLimit: 0,
+  },
   plugins: [react(),
     tailwindcss(),
   ],
