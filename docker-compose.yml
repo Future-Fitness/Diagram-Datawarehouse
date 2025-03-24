@@ -31,7 +31,7 @@ services:
       context: ./image-analysis-service
       dockerfile: Dockerfile
     ports:
-      - "5001:5000"
+      - "5000:5000"
     volumes:
       - ./image-analysis-service:/app
     networks:
