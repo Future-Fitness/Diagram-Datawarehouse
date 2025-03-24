@@ -95,7 +95,7 @@ const processImage = async (file, imageMetadata) => {
 
 
     //calling flask api service which analyzes and get all image meta data ,like text extraction, and color and oths
-    const flaskResponse = await axios.post(`${FLASK_API_URL}/process-image`, formData, {
+    const flaskResponse = await axios.post(`${FLASK_API_URL}/analyze`, formData, {
       headers: formData.getHeaders(),
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
