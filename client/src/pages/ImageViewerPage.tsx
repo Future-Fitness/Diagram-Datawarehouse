@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { request, gql } from "graphql-request";
 import ImageGrid from "../components/ImageGrid";
@@ -9,7 +9,8 @@ import { useDebounce } from "../hooks/useDebounce";
 
 const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
 const REST_ENDPOINT = "http://localhost:4000/api/v1/SubjectTypes";
-const SEARCH_ENDPOINT = "http://localhost:4000/api/v1/diagram"; // Atlas Search endpoint
+const SEARCH_ENDPOINT = "http://localhost:4000/api/v1/diagram"; // Basic search endpoint
+const ADVANCED_SEARCH_ENDPOINT = "http://localhost:4000/api/v1/diagram/advanced"; // Advanced search endpoint
 const AUTOCOMPLETE_ENDPOINT = "http://localhost:4000/api/v1/diagram/autocomplete"; // Autocomplete endpoint
 
 // GraphQL Query to Fetch ALL Diagrams (No subject filter)
@@ -60,96 +61,6 @@ const fetchSubjects = async () => {
   return axios.get(REST_ENDPOINT).then((res) => res.data.subjectTypes);
 };
 
-// Fetch Function for Diagrams (Handles both queries)
-const fetchDiagrams = async ({ queryKey }) => {
-  const [, page, limit, subjectId, searchTerm, filters] = queryKey;
-
-  // If we have a search term, use Atlas Search
-  if (searchTerm && searchTerm.length > 2) {
-    // Convert subjectId to array format for the search API
-    let subjectArray = subjectId ? [subjectId] : [];
-    
-    // Build query parameters
-    const params = new URLSearchParams({
-      query: searchTerm,
-      limit: limit,
-      page: page
-    });
-    
-    // Add subject filter if present
-    if (subjectArray.length > 0) {
-      params.append('subjects', JSON.stringify(subjectArray));
-    }
-    
-    // Add other filters if present
-    if (filters) {
-      if (filters.quality) {
-        params.append('quality', filters.quality);
-      }
-      if (filters.format) {
-        params.append('format', filters.format);
-      }
-      if (filters.sourceType) {
-        params.append('sourceType', filters.sourceType);
-      }
-      if (filters.dateFrom) {
-        params.append('dateFrom', filters.dateFrom);
-      }
-      if (filters.dateTo) {
-        params.append('dateTo', filters.dateTo);
-      }
-    }
-    
-    // Use Atlas Search API
-    try {
-      const response = await axios.get(`${SEARCH_ENDPOINT}?${params.toString()}`, {
-        headers: {
-          'Content-Type': 'application/json'
-          // Include auth token if needed
-          // 'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      // Transform the response to match our expected format
-      // This adapts the Atlas Search response to the same structure expected from GraphQL
-      return {
-        diagrams: response.data.results.map(item => ({
-          _id: item._id,
-          title: item.title,
-          image_url: item.image_url,
-          subjectId: {
-            _id: item.subjectId?._id || "",
-            name: item.subjectId?.name || ""
-          },
-          created_at: item.upload_date || item.created_at
-        })),
-        total: response.data.pagination.total,
-        totalPages: Math.ceil(response.data.pagination.total / limit),
-        currentPage: page
-      };
-    } catch (error) {
-      console.error("Atlas Search error:", error);
-      throw error;
-    }
-  } else {
-    // Use GraphQL for non-search queries
-    if (subjectId) {
-      // Fetch Diagrams by Subject
-      return request(GRAPHQL_ENDPOINT, GET_ALL_DIAGRAMS_BY_SUBJECT, { 
-        page, 
-        limit, 
-        subjectId 
-      }).then((data) => data.getAllDiagramsBySubjectType);
-    } else {
-      // Fetch All Diagrams (No Filter)
-      return request(GRAPHQL_ENDPOINT, GET_ALL_DIAGRAMS_QUERY, { 
-        page, 
-        limit 
-      }).then((data) => data.getAllDiagrams);
-    }
-  }
-};
-
 // Function to fetch autocomplete suggestions
 const fetchAutocompleteSuggestions = async (prefix) => {
   if (!prefix || prefix.length < 2) return [];
@@ -174,16 +85,27 @@ export default function DiagramSearchPage() {
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
+  const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
+  const [searchResults, setSearchResults] = useState(null);
   
   // Advanced search options
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-  const [filters, setFilters] = useState({
+  const [advancedFilters, setAdvancedFilters] = useState({
+    textQuery: "",
+    subjects: [],
+    tags: [],
     quality: "",
-    dateFrom: "",
-    dateTo: "",
+    minQualityScore: 0,
+    dateRange: {
+      from: "",
+      to: ""
+    },
     format: "",
-    sourceType: ""
+    sortBy: "searchScore"
   });
+  
+  // Tags input handling
+  const [tagInput, setTagInput] = useState("");
   
   // Debounce search term to avoid too many API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -195,52 +117,235 @@ export default function DiagramSearchPage() {
     staleTime: 1000 * 60 * 5,
   });
 
-  // Fetch Diagrams (with Atlas Search integration)
-  const { data: imagesData, isLoading, error, refetch } = useQuery({
-    queryKey: ["diagrams", page, limit, selectedSubject, debouncedSearchTerm, filters], 
-    queryFn: fetchDiagrams,
+  // Only fetch diagrams when not in advanced search mode
+  const { data: imagesData, isLoading: basicSearchLoading, error: basicSearchError } = useQuery({
+    queryKey: ["diagrams", page, limit, selectedSubject, debouncedSearchTerm],
+    queryFn: async () => {
+      // If using advanced search, skip this query
+      if (isAdvancedSearch) {
+        return null;
+      }
+      
+      // If we have a search term, use Atlas Search basic endpoint
+      if (debouncedSearchTerm && debouncedSearchTerm.length > 2) {
+        // Convert subjectId to array format for the search API
+        let subjectArray = selectedSubject ? [selectedSubject] : [];
+        
+        // Build query parameters
+        const params = new URLSearchParams({
+          query: debouncedSearchTerm,
+          limit: limit,
+          page: page
+        });
+        
+        if (subjectArray.length > 0) {
+          params.append('subjects', JSON.stringify(subjectArray));
+        }
+        
+        // Use Atlas Search basic API
+        try {
+          const response = await axios.get(`${SEARCH_ENDPOINT}?${params.toString()}`);
+          
+          // Transform the response to match expected format
+          return {
+            diagrams: response.data.results.map(item => ({
+              _id: item._id,
+              title: item.title,
+              image_url: item.image_url,
+              subjectId: {
+                _id: item.subjectId?._id || "",
+                name: item.subjectId?.name || ""
+              },
+              created_at: item.upload_date || item.created_at
+            })),
+            total: response.data.pagination.total,
+            totalPages: Math.ceil(response.data.pagination.total / limit),
+            currentPage: page
+          };
+        } catch (error) {
+          console.error("Atlas Search error:", error);
+          throw error;
+        }
+      } else {
+        // Use GraphQL for non-search queries
+        if (selectedSubject) {
+          // Fetch Diagrams by Subject
+          return request(GRAPHQL_ENDPOINT, GET_ALL_DIAGRAMS_BY_SUBJECT, { 
+            page, 
+            limit, 
+            subjectId: selectedSubject 
+          }).then((data) => data.getAllDiagramsBySubjectType);
+        } else {
+          // Fetch All Diagrams (No Filter)
+          return request(GRAPHQL_ENDPOINT, GET_ALL_DIAGRAMS_QUERY, { 
+            page, 
+            limit 
+          }).then((data) => data.getAllDiagrams);
+        }
+      }
+    },
     staleTime: 1000 * 60 * 2,
+    enabled: !isAdvancedSearch // Disable this query when using advanced search
   });
 
-  // Handle filters change
-  const handleFilterChange = (name, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  // Apply advanced filters
-  const applyAdvancedFilters = () => {
-    setPage(1); // Reset to first page
-    refetch();
-  };
+  // Advanced Search mutation
+  const advancedSearchMutation = useMutation({
+    mutationFn: async (searchParams) => {
+      const response = await axios.post(ADVANCED_SEARCH_ENDPOINT, searchParams);
+      
+      // Transform the response to match our expected format
+      return {
+        diagrams: response.data.results.map(item => ({
+          _id: item._id,
+          title: item.title,
+          image_url: item.image_url,
+          subjectId: {
+            _id: item.subjectId?._id || "",
+            name: item.subjectId?.name || ""
+          },
+          created_at: item.upload_date || item.created_at
+        })),
+        total: response.data.pagination.total,
+        totalPages: Math.ceil(response.data.pagination.total / limit),
+        currentPage: searchParams.page
+      };
+    },
+    onSuccess: (data) => {
+      setSearchResults(data);
+      setIsAdvancedSearch(true);
+    }
+  });
 
   // Handle pagination
   const handlePageChange = (newPage) => {
     setPage(newPage);
     window.scrollTo(0, 0);
+    
+    if (isAdvancedSearch) {
+      // If using advanced search, perform the search again with new page
+      performAdvancedSearch(newPage);
+    }
   };
 
   // Handle subject selection
   const handleSubjectClick = (subjectId) => {
-    setSelectedSubject(subjectId);
+    if (isAdvancedSearch) {
+      // For advanced search, update the filters
+      setAdvancedFilters(prev => ({
+        ...prev,
+        subjects: subjectId ? [subjectId] : []
+      }));
+    } else {
+      // For basic search
+      setSelectedSubject(subjectId);
+    }
+    
     setPage(1); // Reset to first page when changing subjects
   };
   
-  // Reset all filters
+  // Handle tag input
+  const handleTagInputKeyDown = (e) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      addTag(tagInput.trim());
+      setTagInput('');
+    }
+  };
+  
+  const addTag = (tag) => {
+    if (!advancedFilters.tags.includes(tag)) {
+      setAdvancedFilters(prev => ({
+        ...prev,
+        tags: [...prev.tags, tag]
+      }));
+    }
+  };
+  
+  const removeTag = (tagToRemove) => {
+    setAdvancedFilters(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
+  
+  // Update advanced filters
+  const handleAdvancedFilterChange = (field, value) => {
+    if (field.includes('.')) {
+      // Handle nested fields like dateRange.from
+      const [parent, child] = field.split('.');
+      setAdvancedFilters(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value
+        }
+      }));
+    } else {
+      // Handle top-level fields
+      setAdvancedFilters(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+  };
+  
+  // Perform the advanced search
+  const performAdvancedSearch = (pageNumber = 1) => {
+    // Prepare search params
+    const searchParams = {
+      ...advancedFilters,
+      page: pageNumber,
+      limit: limit,
+      textQuery: advancedFilters.textQuery || searchTerm // Use main search term if no specific query is provided
+    };
+    
+    // Execute advanced search
+    advancedSearchMutation.mutate(searchParams);
+  };
+  
+  // Apply advanced filters
+  const applyAdvancedFilters = () => {
+    setPage(1); // Reset to first page
+    performAdvancedSearch(1);
+  };
+  
+  // Reset all filters and switch back to basic search
   const resetAllFilters = () => {
-    setFilters({
+    setAdvancedFilters({
+      textQuery: "",
+      subjects: [],
+      tags: [],
       quality: "",
-      dateFrom: "",
-      dateTo: "",
+      minQualityScore: 0,
+      dateRange: {
+        from: "",
+        to: ""
+      },
       format: "",
-      sourceType: ""
+      sortBy: "searchScore"
     });
     setSearchTerm("");
     setSelectedSubject(null);
     setPage(1);
+    setIsAdvancedSearch(false);
+    setSearchResults(null);
   };
+
+  // Handle main search term updates
+  useEffect(() => {
+    if (isAdvancedSearch && debouncedSearchTerm) {
+      // Update the advanced filters with the new search term
+      setAdvancedFilters(prev => ({
+        ...prev,
+        textQuery: debouncedSearchTerm
+      }));
+    }
+  }, [debouncedSearchTerm, isAdvancedSearch]);
+
+  // Determine which data to display
+  const displayData = isAdvancedSearch ? searchResults : imagesData;
+  const isLoading = isAdvancedSearch ? advancedSearchMutation.isLoading : basicSearchLoading;
+  const error = isAdvancedSearch ? advancedSearchMutation.error : basicSearchError;
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200 p-6">
@@ -273,12 +378,13 @@ export default function DiagramSearchPage() {
         <div className="mb-6 p-4 bg-slate-800 rounded-lg shadow-xl border border-slate-700">
           <h2 className="text-lg font-semibold mb-3 text-cyan-400">Advanced Filters</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Quality and Format */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div className="flex flex-col">
               <label className="mb-1 text-sm font-medium text-slate-300">Quality Rating</label>
               <select 
-                value={filters.quality} 
-                onChange={(e) => handleFilterChange('quality', e.target.value)}
+                value={advancedFilters.quality} 
+                onChange={(e) => handleAdvancedFilterChange('quality', e.target.value)}
                 className="border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
               >
                 <option value="">Any Quality</option>
@@ -289,25 +395,23 @@ export default function DiagramSearchPage() {
             </div>
             
             <div className="flex flex-col">
-              <label className="mb-1 text-sm font-medium text-slate-300">Source Type</label>
-              <select 
-                value={filters.sourceType} 
-                onChange={(e) => handleFilterChange('sourceType', e.target.value)}
+              <label className="mb-1 text-sm font-medium text-slate-300">Min Quality Score</label>
+              <input
+                type="number"
+                min="0"
+                max="10"
+                step="0.1"
+                value={advancedFilters.minQualityScore}
+                onChange={(e) => handleAdvancedFilterChange('minQualityScore', parseFloat(e.target.value) || 0)}
                 className="border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              >
-                <option value="">Any Source</option>
-                <option value="Book">Book</option>
-                <option value="Research Paper">Research Paper</option>
-                <option value="Website">Website</option>
-                <option value="Other">Other</option>
-              </select>
+              />
             </div>
             
             <div className="flex flex-col">
               <label className="mb-1 text-sm font-medium text-slate-300">Format</label>
               <select 
-                value={filters.format} 
-                onChange={(e) => handleFilterChange('format', e.target.value)}
+                value={advancedFilters.format} 
+                onChange={(e) => handleAdvancedFilterChange('format', e.target.value)}
                 className="border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
               >
                 <option value="">Any Format</option>
@@ -317,15 +421,30 @@ export default function DiagramSearchPage() {
                 <option value="PDF">PDF</option>
               </select>
             </div>
+            
+            <div className="flex flex-col">
+              <label className="mb-1 text-sm font-medium text-slate-300">Sort By</label>
+              <select 
+                value={advancedFilters.sortBy} 
+                onChange={(e) => handleAdvancedFilterChange('sortBy', e.target.value)}
+                className="border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              >
+                <option value="searchScore">Relevance</option>
+                <option value="date">Date (Newest)</option>
+                <option value="quality">Quality (Highest)</option>
+                <option value="title">Title (A-Z)</option>
+              </select>
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          {/* Date Range */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="flex flex-col">
               <label className="mb-1 text-sm font-medium text-slate-300">Date From</label>
               <input 
                 type="date" 
-                value={filters.dateFrom} 
-                onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+                value={advancedFilters.dateRange.from} 
+                onChange={(e) => handleAdvancedFilterChange('dateRange.from', e.target.value)}
                 className="border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
               />
             </div>
@@ -334,11 +453,56 @@ export default function DiagramSearchPage() {
               <label className="mb-1 text-sm font-medium text-slate-300">Date To</label>
               <input 
                 type="date" 
-                value={filters.dateTo}
-                onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+                value={advancedFilters.dateRange.to}
+                onChange={(e) => handleAdvancedFilterChange('dateRange.to', e.target.value)}
                 className="border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
               />
             </div>
+          </div>
+          
+          {/* Tags */}
+          <div className="mb-4">
+            <label className="mb-1 text-sm font-medium text-slate-300">Tags</label>
+            <div className="flex items-center">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleTagInputKeyDown}
+                placeholder="Add tags (press Enter)"
+                className="flex-grow border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+              />
+              <button
+                onClick={() => {
+                  if (tagInput.trim()) {
+                    addTag(tagInput.trim());
+                    setTagInput('');
+                  }
+                }}
+                className="ml-2 bg-cyan-600 hover:bg-cyan-700 text-white p-2 rounded-md transition-colors"
+              >
+                Add
+              </button>
+            </div>
+            
+            {/* Tag chips */}
+            {advancedFilters.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {advancedFilters.tags.map(tag => (
+                  <div key={tag} className="bg-slate-700 text-cyan-400 px-2 py-1 rounded-full text-sm flex items-center">
+                    <span>{tag}</span>
+                    <button 
+                      onClick={() => removeTag(tag)}
+                      className="ml-1 text-slate-400 hover:text-white"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="mt-4 flex justify-between">
@@ -359,106 +523,12 @@ export default function DiagramSearchPage() {
         </div>
       )}
 
-      {/* Active Filters Tags */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {(debouncedSearchTerm || selectedSubject || Object.values(filters).some(v => v)) && (
-          <div className="text-slate-400 mr-2 self-center">Active filters:</div>
-        )}
-        
-        {debouncedSearchTerm && (
-          <div className="bg-slate-800 text-cyan-400 px-3 py-1 rounded-full text-sm border border-slate-700 flex items-center">
-            <span>Search: {debouncedSearchTerm}</span>
-            <button 
-              onClick={() => setSearchTerm("")}
-              className="ml-2 hover:text-white"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
-        
-        {selectedSubject && subjects && (
-          <div className="bg-slate-800 text-cyan-400 px-3 py-1 rounded-full text-sm border border-slate-700 flex items-center">
-            <span>Subject: {subjects.find(s => s._id === selectedSubject)?.name}</span>
-            <button 
-              onClick={() => setSelectedSubject(null)}
-              className="ml-2 hover:text-white"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
-        
-        {filters.quality && (
-          <div className="bg-slate-800 text-cyan-400 px-3 py-1 rounded-full text-sm border border-slate-700 flex items-center">
-            <span>Quality: {filters.quality}</span>
-            <button 
-              onClick={() => handleFilterChange('quality', '')}
-              className="ml-2 hover:text-white"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
-        
-        {filters.format && (
-          <div className="bg-slate-800 text-cyan-400 px-3 py-1 rounded-full text-sm border border-slate-700 flex items-center">
-            <span>Format: {filters.format}</span>
-            <button 
-              onClick={() => handleFilterChange('format', '')}
-              className="ml-2 hover:text-white"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
-        
-        {filters.sourceType && (
-          <div className="bg-slate-800 text-cyan-400 px-3 py-1 rounded-full text-sm border border-slate-700 flex items-center">
-            <span>Source: {filters.sourceType}</span>
-            <button 
-              onClick={() => handleFilterChange('sourceType', '')}
-              className="ml-2 hover:text-white"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
-        
-        {(filters.dateFrom || filters.dateTo) && (
-          <div className="bg-slate-800 text-cyan-400 px-3 py-1 rounded-full text-sm border border-slate-700 flex items-center">
-            <span>Date: {filters.dateFrom || 'Any'} - {filters.dateTo || 'Any'}</span>
-            <button 
-              onClick={() => {
-                handleFilterChange('dateFrom', '');
-                handleFilterChange('dateTo', '');
-              }}
-              className="ml-2 hover:text-white"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Subject Buttons */}
+      {/* Subject Buttons (Still show them for easy filtering) */}
       <div className="flex justify-center gap-4 mb-6 flex-wrap">
         <button
           onClick={() => handleSubjectClick(null)}
           className={`px-4 py-2 text-white rounded-md shadow-lg transition-colors ${
-            selectedSubject === null 
+            (isAdvancedSearch ? advancedFilters.subjects.length === 0 : selectedSubject === null)
               ? "bg-cyan-600 ring-2 ring-cyan-400" 
               : "bg-slate-700 hover:bg-slate-600"
           }`}
@@ -474,7 +544,9 @@ export default function DiagramSearchPage() {
               key={subject._id}
               onClick={() => handleSubjectClick(subject._id)}
               className={`px-4 py-2 text-white rounded-md shadow-lg transition-colors ${
-                selectedSubject === subject._id 
+                (isAdvancedSearch 
+                  ? advancedFilters.subjects.includes(subject._id)
+                  : selectedSubject === subject._id)
                   ? "bg-cyan-600 ring-2 ring-cyan-400" 
                   : "bg-slate-700 hover:bg-slate-600"
               }`}
@@ -485,10 +557,19 @@ export default function DiagramSearchPage() {
         )}
       </div>
 
+      {/* Active search mode indicator */}
+      {isAdvancedSearch && (
+        <div className="mb-4 text-center">
+          <span className="bg-cyan-700 text-white px-3 py-1 rounded-md text-sm">
+            Advanced Search Mode
+          </span>
+        </div>
+      )}
+
       {/* Image Grid */}
       <div className="bg-slate-800 rounded-lg p-4 shadow-xl border border-slate-700">
         <ImageGrid 
-          images={imagesData?.diagrams || []} 
+          images={displayData?.diagrams || []} 
           loading={isLoading} 
           error={error?.message}
           darkMode={true} 
@@ -509,7 +590,7 @@ export default function DiagramSearchPage() {
         )}
 
         {/* Empty State */}
-        {!isLoading && !error && imagesData?.diagrams?.length === 0 && (
+        {!isLoading && !error && (!displayData || displayData?.diagrams?.length === 0) && (
           <div className="text-center py-12">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-slate-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -521,7 +602,7 @@ export default function DiagramSearchPage() {
       </div>
 
       {/* Pagination */}
-      {imagesData && imagesData.totalPages > 1 && (
+      {displayData && displayData.totalPages > 1 && (
         <div className="flex justify-center mt-8">
           <div className="flex gap-2 bg-slate-800 p-2 rounded-lg shadow-lg border border-slate-700">
             <button
@@ -537,14 +618,14 @@ export default function DiagramSearchPage() {
             </button>
             
             <div className="flex items-center px-4 text-slate-300">
-              Page {page} of {imagesData.totalPages}
+              Page {page} of {displayData.totalPages}
             </div>
             
             <button
               onClick={() => handlePageChange(page + 1)}
-              disabled={page === imagesData.totalPages}
+              disabled={page === displayData.totalPages}
               className={`px-4 py-2 rounded-md transition-colors ${
-                page === imagesData.totalPages
+                page === displayData.totalPages
                   ? "bg-slate-700 text-slate-500 cursor-not-allowed"
                   : "bg-cyan-600 text-white hover:bg-cyan-700"
               }`}
