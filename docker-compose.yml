@@ -36,33 +36,9 @@ services:
       - ./image-analysis-service:/app
     networks:
       - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000"]  # Check port 5000 inside container
-      interval: 30s
-      retries: 3
-      start_period: 30s
-      timeout: 10s
+ 
 
 
 
-  diagram-redis:  # ✅ New Redis service
-    container_name: diagram-redis
-    image: redis:7  # ✅ Latest stable Redis version
-    restart: always
-    ports:
-      - "6379:6379"  # ✅ Default Redis port
-    volumes:
-      - redis-data:/data  # ✅ Persistent Redis storage
-    networks:
-      - app-network
-    healthcheck:  # ✅ Ensure Redis is ready before backend starts
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 
-
-volumes:
-
-  redis-data:  # ✅ Volume for Redis persistence
