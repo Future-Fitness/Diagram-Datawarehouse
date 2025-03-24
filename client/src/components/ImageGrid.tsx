@@ -5,7 +5,7 @@ interface ImageGridProps {
   onImageClick?: (subjectId: string) => void;
 }
 
-const ImageGrid: React.FC<ImageGridProps> = ({ images, loading, error, onImageClick }) => (
+const ImageGrid: React.FC<ImageGridProps> = ({ images, loading, error }:any) => (
   <div className="max-w-6xl mx-auto grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
     {loading ? (
       <p className="text-center text-gray-500">Loading images...</p>
@@ -19,8 +19,7 @@ const ImageGrid: React.FC<ImageGridProps> = ({ images, loading, error, onImageCl
           className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
           // onClick={() => onImageClick && onImageClick(img.subjectId)}
         >
-          {console.log(img)}
-           
+
           <img src={img.image_url} alt={img.title || "Image"} className="w-full h-48 object-cover" />
           <div className="p-4">
             <h2 className="font-semibold text-lg">{img.title || "Untitled"}</h2>

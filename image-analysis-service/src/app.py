@@ -1,186 +1,189 @@
+import os
 from flask import Flask, request, jsonify
 import cv2
-import numpy as np
 import pytesseract
-import os
-from utils.image_processing import analyze_image_quality
-import logging
-from utils.text_extract import extract_text, extract_math_symbols
-import cv2
+import numpy as np
+from PIL import Image
+import io
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# Configuration
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff'}
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
-def analyze_diagram(image_path):
-    """Comprehensive diagram analysis"""
-    image = cv2.imread(image_path)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray, 50, 150)
-    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-    # Shape analysis
-    shape_counts = {"circles": 0, "rectangles": 0, "lines": 0}
-    vertical_bars = 0
-    horizontal_bars = 0
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-    for cnt in contours:
-        approx = cv2.approxPolyDP(cnt, 0.02 * cv2.arcLength(cnt, True), True)
-        x, y, w, h = cv2.boundingRect(cnt)
-        
-        if len(approx) > 8:  # Circle detection
-            shape_counts["circles"] += 1
-        elif len(approx) == 4:  # Rectangle detection
-            shape_counts["rectangles"] += 1
-            if h > w * 2:  # Vertical bar
-                vertical_bars += 1
-            elif w > h * 2:  # Horizontal bar
-                horizontal_bars += 1
-        elif len(approx) == 2:  # Line detection
-            shape_counts["lines"] += 1
-
-    # Chart type detection
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 20,
-                              param1=50, param2=30, minRadius=50, maxRadius=300)
-
-    # Text extraction with confidence
-    text_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
-    text_blocks = [{"text": text_data['text'][i], "confidence": int(text_data['conf'][i])}
-                   for i in range(len(text_data['text'])) if int(text_data['conf'][i]) > 60]
-
-    # Determine chart type
-    chart_analysis = {
-        "type": "Unknown",
-        "characteristics": {
-            "is_pie_chart": circles is not None,
-            "is_bar_chart": (vertical_bars + horizontal_bars) > 2,
-            "vertical_bars": vertical_bars,
-            "horizontal_bars": horizontal_bars
-        }
-    }
-
-    if chart_analysis["characteristics"]["is_pie_chart"]:
-        chart_analysis["type"] = "Pie Chart"
-    elif chart_analysis["characteristics"]["is_bar_chart"]:
-        chart_analysis["type"] = "Bar Chart"
-
-    # Get color analysis
-    colors = extract_colors(image)
-
-    return {
-        "shapes_detected": shape_counts,
-        "chart_analysis": chart_analysis,
-        "text_analysis": {
-            "blocks": text_blocks,
-            "total_words": len([block for block in text_blocks if block['text'].strip()]),
-            "average_confidence": np.mean([block['confidence'] for block in text_blocks if block['text'].strip()])
-        },
-        "color_analysis": colors,
-        "grid_detection": detect_grid_lines(image_path)
-    }
-
-def extract_colors(image, k=3):
-    """Extract dominant colors using k-means clustering"""
-    pixels = image.reshape(-1, 3)
-    pixels = np.float32(pixels)
-    
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, 0.1)
-    _, _, centers = cv2.kmeans(pixels, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
-    
-    return np.uint8(centers).tolist()
-
-def detect_grid_lines(image_path):
-    """Detect if the image contains grid lines"""
-    image = cv2.imread(image_path, 0)
-    edges = cv2.Canny(image, 50, 150, apertureSize=3)
-    
-    lines = cv2.HoughLines(edges, 1, np.pi/180, 200)
-    return lines is not None
-
-@app.route('/', methods=['GET'])
-def root():
-    return jsonify({
-        'status': 'running',
-        'service': 'image-analysis',
-        'endpoints': [
-            {'path': '/health', 'method': 'GET'},
-            {'path': '/analyze', 'method': 'POST'}
-        ]
-    })
-
-
-def assign_quality_label(score):
-    """Assigns a Low, Medium, or High rating based on quality score."""
-    if score >= 80:
-        return "High"
-    elif score >= 50:
-        return "Medium"
-    else:
-        return "Low"
-    
-
-@app.route('/analyze', methods=['POST'])
-def analyze():
-    logger.info('Analyze endpoint called')
-    if 'image' not in request.files:
-        return jsonify({'error': 'No image provided'}), 400
-
-    image = request.files['image']
-    image_path = os.path.join(UPLOAD_FOLDER, image.filename)
-    image.save(image_path)
-
+def detect_text_in_image(image_path):
+    """
+    Detects text in an image using OCR.
+    Returns tuple of (text_found, text_content)
+    """
     try:
-        text_result = extract_text(image_path)
-        text_result= text_result.replace("\n", " ") 
-        symbols_result = extract_math_symbols(image_path)
-
-        # print(text_result, '__141')
-        # print(symbols_result, '142')
-        if not isinstance(text_result, dict):
-            text_result = {"text": text_result}  # Wrap string in a dict
-
-        if not isinstance(symbols_result, dict):
-            symbols_result = {"symbols": symbols_result} 
+        # Read image with OpenCV
+        img = cv2.imread(image_path)
+        if img is None:
+            return False, "Error: Unable to read image file"
         
-
-        # Get Image Quality Metrics
-        quality_metrics = analyze_image_quality(image_path)
-        quality_score = quality_metrics["quality_scores"]["overall_quality"]
-        quality_label = assign_quality_label(quality_score)
-
-        text_result = extract_text(image_path)
-        symbols_result = extract_math_symbols(image_path)
-
-        # Combine All Results
-        result = {
-            "file_info": {
-                "filename": image.filename,
-                "size_mb": os.path.getsize(image_path) / (1024 * 1024)
-            },
-            "quality_rating": quality_label,
-            **quality_metrics,
-            'text_result':text_result,
-            'symbols_result':symbols_result
-
-        }
+        # Preprocess the image to improve OCR results
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray, (5, 5), 0)
+        _, threshold = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         
-        return jsonify(result)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-    finally:
-        if os.path.exists(image_path):
-            os.remove(image_path)
-
+        # Perform OCR
+        text = pytesseract.image_to_string(threshold)
+        
+        # Clean and check the text
+        text = text.strip()
+        
+        # If there's no text or only whitespace/special chars
+        if not text or text.isspace():
+            return False, ""
             
+        return True, text
+    except Exception as e:
+        # Log the exception but don't fail
+        print(f"Error processing image: {str(e)}")
+        return False, f"Error: {str(e)}"
+
+@app.route('/check-image-text', methods=['POST'])
+def check_image_text():
+    """
+    API endpoint to check if an image contains text.
+    """
+    # Check if request has the file part
+    if 'image' not in request.files:
+        return jsonify({
+            'success': False,
+            'error': 'No image file in request',
+            'contains_text': None
+        }), 400
+    
+    file = request.files['image']
+    
+    # Check if file is empty
+    if file.filename == '':
+        return jsonify({
+            'success': False,
+            'error': 'No file selected',
+            'contains_text': None
+        }), 400
+    
+    # Check if the file is allowed
+    if not allowed_file(file.filename):
+        return jsonify({
+            'success': False,
+            'error': f'File type not allowed. Supported types: {", ".join(ALLOWED_EXTENSIONS)}',
+            'contains_text': None
+        }), 400
+    
+    try:
+        # Save the file temporarily
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filepath)
+        
+        # Process the image
+        has_text, text_content = detect_text_in_image(filepath)
+        
+        # Clean up the file
+        os.remove(filepath)
+        
+        # Return the result
+        return jsonify({
+            'success': True,
+            'contains_text': has_text,
+            'text_content': text_content if has_text else None
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Error processing image: {str(e)}',
+            'contains_text': None
+        }), 500
+
+@app.route('/process-image', methods=['POST'])
+def process_image():
+    """
+    API endpoint to process images and handle those without text gracefully.
+    """
+    # Check if request has the file part
+    if 'image' not in request.files:
+        return jsonify({
+            'success': False,
+            'error': 'No image file in request',
+            'processed': False
+        }), 400
+    
+    file = request.files['image']
+    
+    # Check if file is empty
+    if file.filename == '':
+        return jsonify({
+            'success': False,
+            'error': 'No file selected',
+            'processed': False
+        }), 400
+    
+    # Check if the file is allowed
+    if not allowed_file(file.filename):
+        return jsonify({
+            'success': False,
+            'error': f'File type not allowed. Supported types: {", ".join(ALLOWED_EXTENSIONS)}',
+            'processed': False
+        }), 400
+    
+    try:
+        # Save the file temporarily
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        file.save(filepath)
+        
+        # Process the image
+        has_text, text_content = detect_text_in_image(filepath)
+        
+        # Example of handling both cases properly
+        if has_text:
+            result = {
+                'success': True,
+                'processed': True,
+                'contains_text': True,
+                'text_content': text_content,
+                'action_taken': 'Text extracted successfully'
+            }
+        else:
+            # No text found, but this is not an error - handle gracefully
+            result = {
+                'success': True,
+                'processed': True,
+                'contains_text': False,
+                'action_taken': 'Image processed but no text was found'
+            }
+        
+        # Clean up the file
+        os.remove(filepath)
+        
+        # Return the appropriate result
+        return jsonify(result)
+        
+    except Exception as e:
+        # Log the exception
+        print(f"Error in process_image: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'Error processing image: {str(e)}',
+            'processed': False
+        }), 500
+
 @app.route('/health', methods=['GET'])
 def health_check():
-    logger.info('Health check endpoint called')
-    return jsonify({'status': 'healthy'}), 200
+    """Simple health check endpoint."""
+    return jsonify({'status': 'healthy'})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001) 
+    app.run(debug=False, host='0.0.0.0', port=5000)
