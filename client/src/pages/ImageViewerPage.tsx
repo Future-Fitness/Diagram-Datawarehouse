@@ -59,7 +59,23 @@ const GET_ALL_DIAGRAMS_QUERY = gql`
           name
           description
         }
-        created_at
+        created_at,
+        extracted_text,
+        file_info {
+          format,
+          resolution,
+          file_size_mb
+        }
+        quality_scores {
+        overall_quality
+
+      }
+
+
+       
+
+
+
       }
       total
       totalPages

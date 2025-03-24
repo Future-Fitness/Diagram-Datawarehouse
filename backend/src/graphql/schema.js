@@ -74,15 +74,15 @@ const typeDefs = gql`
 
   # Quality Analysis
   type QualityScores {
-    overall_quality: Int!
-    blur_score: Int!
-    brightness_score: Int!
-    contrast_score: Int!
-    detail_score: Int!
-    edge_density: Int!
-    noise_level: Int!
-    sharpness: Int!
-  }
+  overall_quality: Float!
+  blur_score: Float!
+  brightness_score: Float!
+  contrast_score: Float!
+  detail_score: Float!
+  edge_density: Float!
+  noise_level: Float!
+  sharpness: Float!
+}
 
   # Pagination Response
   type DiagramPagination {
