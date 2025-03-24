@@ -1,15 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * A custom hook that delays updating a value until a specified delay has passed
  * Useful for search inputs to prevent excessive API calls
- * 
+ *
  * @param {any} value - The value to debounce
  * @param {number} delay - The delay in milliseconds
  * @returns {any} - The debounced value
  */
-export function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+interface UseDebounceProps<T> {
+  value: T;
+  delay: number;
+}
+
+export function useDebounce<T>({ value, delay }: UseDebounceProps<T>): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
     // Set a timeout to update the debounced value after the specified delay

@@ -1,36 +1,49 @@
-import React from "react";
 import { Link } from "react-router-dom";
+interface Image {
+  _id: string;
+  title: string;
+  image_url: string;
+  created_at: string;
+  subjectId?: {
+    name: string;
+  };
+}
 
-const ImageGrid = ({ images, loading, error, darkMode = false }) => {
+interface ImageGridProps {
+  images: Image[];
+  loading?: boolean;
+  error: string | null;
+  darkMode?: boolean;
+}
+const ImageGrid: React.FC<ImageGridProps> = ({
+  images,
+
+  error,
+  darkMode = false,
+}) => {
   // Theme classes based on dark mode
   const themeClasses = {
-    card: darkMode 
-      ? "bg-slate-800 border-slate-700 hover:border-cyan-600 shadow-xl" 
+    card: darkMode
+      ? "bg-slate-800 border-slate-700 hover:border-cyan-600 shadow-xl"
       : "bg-white border-gray-200 hover:border-blue-400 shadow-md",
-    title: darkMode 
-      ? "text-slate-200" 
-      : "text-gray-800",
-    subject: darkMode 
-      ? "text-slate-400" 
-      : "text-gray-600",
-    date: darkMode 
-      ? "text-slate-500" 
-      : "text-gray-500",
-    viewButton: darkMode 
-      ? "bg-cyan-600 hover:bg-cyan-700 text-white" 
+    title: darkMode ? "text-slate-200" : "text-gray-800",
+    subject: darkMode ? "text-slate-400" : "text-gray-600",
+    date: darkMode ? "text-slate-500" : "text-gray-500",
+    viewButton: darkMode
+      ? "bg-cyan-600 hover:bg-cyan-700 text-white"
       : "bg-blue-600 hover:bg-blue-700 text-white",
-    errorContainer: darkMode 
-      ? "bg-red-900/30 border-red-800 text-red-400" 
+    errorContainer: darkMode
+      ? "bg-red-900/30 border-red-800 text-red-400"
       : "bg-red-100 border-red-300 text-red-700",
   };
 
   // Helper to format date string
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -84,11 +97,13 @@ const ImageGrid = ({ images, loading, error, darkMode = false }) => {
       ))}
 
       {/* Empty grid cells to maintain layout */}
-      {images.length > 0 && images.length % 4 !== 0 && (
-        Array(4 - (images.length % 4)).fill(0).map((_, index) => (
-          <div key={`empty-${index}`} className="hidden lg:block"></div>
-        ))
-      )}
+      {images.length > 0 &&
+        images.length % 4 !== 0 &&
+        Array(4 - (images.length % 4))
+          .fill(0)
+          .map((_, index) => (
+            <div key={`empty-${index}`} className="hidden lg:block"></div>
+          ))}
     </div>
   );
 };

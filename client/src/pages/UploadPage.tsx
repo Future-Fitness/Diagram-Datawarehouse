@@ -34,6 +34,7 @@ export default function UploadForm() {
     diagramClarity: 0,
     overallRating: 0,
   });
+  console.log(imageQuality);
 
   // 📌 Image Quality Analysis (Client-side Check)
   const analyzeImageQuality = (file: File, imgElement: HTMLImageElement) => {
@@ -42,8 +43,10 @@ export default function UploadForm() {
       const aspectRatio = (imgElement.width / imgElement.height).toFixed(2);
 
       let qualityScore = 0;
-      if (imgElement.width >= 1920 && imgElement.height >= 1080) qualityScore += 40;
-      else if (imgElement.width >= 1280 && imgElement.height >= 720) qualityScore += 30;
+      if (imgElement.width >= 1920 && imgElement.height >= 1080)
+        qualityScore += 40;
+      else if (imgElement.width >= 1280 && imgElement.height >= 720)
+        qualityScore += 30;
       else qualityScore += 20;
 
       const fileSizeNum = parseFloat(fileSize);
@@ -85,7 +88,11 @@ export default function UploadForm() {
   };
 
   // 📌 Handle Input Changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -111,7 +118,7 @@ export default function UploadForm() {
       });
 
       if (response.status === 200) {
-        toast.success("Uploaded successfully")
+        toast.success("Uploaded successfully");
       } else {
         toast.error("Upload Failed!");
       }
@@ -156,14 +163,27 @@ export default function UploadForm() {
       >
         {step === 1 && (
           <>
-            <h2 className="text-2xl font-bold text-center text-gray-800">Step 1: Upload Image</h2>
+            <h2 className="text-2xl font-bold text-center text-gray-800">
+              Step 1: Upload Image
+            </h2>
             <div className="mt-4 flex flex-col items-center">
               <label className="w-full flex flex-col items-center px-6 py-8 bg-blue-500 text-white rounded-lg shadow-lg cursor-pointer hover:bg-blue-700 transition">
                 <FaCloudUploadAlt size={40} />
                 <span className="mt-2 text-base">Select an image file</span>
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
               </label>
-              {imagePreview && <img src={imagePreview} alt="Preview" className="mt-4 rounded-lg shadow-md w-full" />}
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="mt-4 rounded-lg shadow-md w-full"
+                />
+              )}
             </div>
           </>
         )}
@@ -176,37 +196,66 @@ export default function UploadForm() {
             onSubmit={handleSubmit}
             className="space-y-4"
           >
-            <h2 className="text-2xl font-bold text-center text-gray-800">Step 2: Enter Image Metadata</h2>
+            <h2 className="text-2xl font-bold text-center text-gray-800">
+              Step 2: Enter Image Metadata
+            </h2>
 
-            <input type="text" name="title" required className="w-full p-2 border rounded" placeholder="Title" onChange={handleChange} />
+            <input
+              type="text"
+              name="title"
+              required
+              className="w-full p-2 border rounded"
+              placeholder="Title"
+              onChange={handleChange}
+            />
 
-            <select name="subjectId" required className="w-full p-2 border rounded" onChange={handleChange}>
+            <select
+              name="subjectId"
+              required
+              title="subject"
+              className="w-full p-2 border rounded"
+              onChange={handleChange}
+            >
               <option value="">Select Subject</option>
-              {subject.map((i) => (
-                <option key={i._id} value={i._id}>{i.name}</option>
+              {subject.map((i: { _id: string; name: string }) => (
+                <option key={i._id} value={i._id}>
+                  {i.name}
+                </option>
               ))}
             </select>
 
-            <textarea name="notes" className="w-full p-2 border rounded" placeholder="Additional Notes" onChange={handleChange}></textarea>
-
-
+            <textarea
+              name="notes"
+              className="w-full p-2 border rounded"
+              placeholder="Additional Notes"
+              onChange={handleChange}
+            ></textarea>
 
             <div>
               <label className="font-semibold">Diagram Type</label>
-              <select name="diagramType" required className="w-full p-2 border rounded" onChange={handleChange}>
+              <select
+                name="diagramType"
+                title="diagramType"
+                required
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              >
                 <option value="">Select Type</option>
-              {
-                diagram.map((i)=>(
+                {diagram.map((i: { _id: string; category: string }) => (
                   <option value={i._id}>{i.category}</option>
-                ))
-              }
-          
+                ))}
               </select>
             </div>
 
             <div>
               <label className="font-semibold">Source Type</label>
-              <select name="sourceType" required className="w-full p-2 border rounded" onChange={handleChange}>
+              <select
+                name="sourceType"
+                title="s"
+                required
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              >
                 <option value="">Select Source Type</option>
                 <option value="Book">Book</option>
                 <option value="Research Paper">Research Paper</option>
@@ -214,32 +263,48 @@ export default function UploadForm() {
               </select>
             </div>
 
-           
-
-          
-
-           
-
             <div>
               <label className="font-semibold">Source (Optional)</label>
-              <input type="text" name="source" className="w-full p-2 border rounded" onChange={handleChange} />
+              <input
+                type="text"
+                name="source"
+                title="t"
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              />
             </div>
 
             <div>
               <label className="font-semibold">Page Number (Optional)</label>
-              <input type="number" name="pageNumber" className="w-full p-2 border rounded" onChange={handleChange} />
+              <input
+                type="number"
+                name="pageNumber"
+                title="t"
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              />
             </div>
 
             <div>
               <label className="font-semibold">Author (Optional)</label>
-              <input type="text" name="author" className="w-full p-2 border rounded" onChange={handleChange} />
+              <input
+                type="text"
+                name="author"
+                title="t"
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              />
             </div>
 
             <div>
               <label className="font-semibold">Additional Notes</label>
-              <textarea name="notes" className="w-full p-2 border rounded" onChange={handleChange}></textarea>
+              <textarea
+                name="notes"
+                title="t"
+                className="w-full p-2 border rounded"
+                onChange={handleChange}
+              ></textarea>
             </div>
-
 
             <motion.button
               type="submit"

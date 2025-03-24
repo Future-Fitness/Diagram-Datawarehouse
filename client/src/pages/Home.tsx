@@ -1,16 +1,15 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Home() {
-//   const [image, setImage] = useState(null);
+  //   const [image, setImage] = useState(null);
 
-//   const handleImageUpload = (event) => {
-//     const file = event.target.files[0];
-//     if (file) {
-//       setImage(URL.createObjectURL(file));
-//     }
-//   };
-const navigate = useNavigate()
+  //   const handleImageUpload = (event) => {
+  //     const file = event.target.files[0];
+  //     if (file) {
+  //       setImage(URL.createObjectURL(file));
+  //     }
+  //   };
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen w-full max-h-screen overflow-y-hidden  bg-gray-100 text-gray-900">
@@ -36,7 +35,9 @@ const navigate = useNavigate()
           </div>
           <div className="bg-white shadow-lg p-6 rounded-lg">
             <h3 className="font-semibold text-lg">Machine Learning Ready</h3>
-            <p className="mt-2 text-gray-600">Supports AI-based image analysis.</p>
+            <p className="mt-2 text-gray-600">
+              Supports AI-based image analysis.
+            </p>
           </div>
         </div>
       </section>
@@ -44,13 +45,13 @@ const navigate = useNavigate()
       <section className="py-8 px-6 text-center">
         <button
           className="bg-blue-600 text-white px-6 py-3 rounded-lg mr-4"
-          onClick={() => navigate('/upload')}
+          onClick={() => navigate("/upload")}
         >
           Upload Image
         </button>
         <button
           className="bg-blue-600 text-white px-6 py-3 rounded-lg"
-          onClick={() => navigate('/imagecollection')}
+          onClick={() => navigate("/imagecollection")}
         >
           View All Images
         </button>
@@ -63,7 +64,9 @@ const navigate = useNavigate()
           <div className="text-center">
             <span className="text-4xl text-orange-600">1</span>
             <h3 className="mt-2 font-semibold text-lg">Upload Diagram</h3>
-            <p className="text-gray-600">Securely upload diagrams via our API.</p>
+            <p className="text-gray-600">
+              Securely upload diagrams via our API.
+            </p>
           </div>
           <div className="text-center">
             <span className="text-4xl text-orange-600">2</span>
@@ -73,11 +76,12 @@ const navigate = useNavigate()
           <div className="text-center">
             <span className="text-4xl text-orange-600">3</span>
             <h3 className="mt-2 font-semibold text-lg">Retrieve & Analyze</h3>
-            <p className="text-gray-600">Easily query diagrams and run ML models.</p>
+            <p className="text-gray-600">
+              Easily query diagrams and run ML models.
+            </p>
           </div>
         </div>
       </section>
-    
 
       {/* Upload Preview Section */}
       {/* <section className="py-12 px-6 text-center">
