@@ -8,8 +8,8 @@ import { useState, useEffect } from 'react';
  * @param {number} delay - The delay in milliseconds
  * @returns {any} - The debounced value
  */
-export function useDebounce(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+export function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
     // Set a timeout to update the debounced value after the specified delay

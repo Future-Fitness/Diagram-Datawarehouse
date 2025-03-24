@@ -6,13 +6,24 @@ import { BASE_URL } from "../App";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 
+interface SubjectType {
+  _id: string;
+  name: string;
+}
+
+interface DiagramType {
+  _id: string;
+  category: string;
+}
+
 export default function UploadForm() {
   const [step, setStep] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [subject, setSubject] = useState([]);
-  const [diagram, setDiagram] = useState([]);
+
+  const [subject, setSubject] = useState<SubjectType[]>([]);
+  const [diagram, setDiagram] = useState<DiagramType[]>([]);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -24,15 +35,7 @@ export default function UploadForm() {
     author: "",
     notes: "",
     tags: "",
-  });
-
-  const [imageQuality, setImageQuality] = useState({
-    resolution: "",
-    fileSize: "",
-    aspectRatio: "",
-    quality: 0,
-    diagramClarity: 0,
-    overallRating: 0,
+    source: "",
   });
 
   // 📌 Image Quality Analysis (Client-side Check)
@@ -62,7 +65,6 @@ export default function UploadForm() {
         overallRating: overallRating,
       };
 
-      setImageQuality(analysisResult);
       resolve(analysisResult);
     });
   };
@@ -111,7 +113,7 @@ export default function UploadForm() {
       });
 
       if (response.status === 200) {
-        toast.success("Uploaded successfully")
+        toast.success("Uploaded successfully");
       } else {
         toast.error("Upload Failed!");
       }
@@ -178,29 +180,33 @@ export default function UploadForm() {
           >
             <h2 className="text-2xl font-bold text-center text-gray-800">Step 2: Enter Image Metadata</h2>
 
-            <input type="text" name="title" required className="w-full p-2 border rounded" placeholder="Title" onChange={handleChange} />
+            <input
+              type="text"
+              name="title"
+              required
+              className="w-full p-2 border rounded"
+              placeholder="Title"
+              onChange={handleChange}
+            />
 
             <select name="subjectId" required className="w-full p-2 border rounded" onChange={handleChange}>
               <option value="">Select Subject</option>
               {subject.map((i) => (
-                <option key={i._id} value={i._id}>{i.name}</option>
+                <option key={i._id} value={i._id}>
+                  {i.name}
+                </option>
               ))}
             </select>
 
-            <textarea name="notes" className="w-full p-2 border rounded" placeholder="Additional Notes" onChange={handleChange}></textarea>
-
-
-
             <div>
               <label className="font-semibold">Diagram Type</label>
-              <select name="diagramType" required className="w-full p-2 border rounded" onChange={handleChange}>
+              <select name="diagramTypeId" required className="w-full p-2 border rounded" onChange={handleChange}>
                 <option value="">Select Type</option>
-              {
-                diagram.map((i)=>(
-                  <option value={i._id}>{i.category}</option>
-                ))
-              }
-          
+                {diagram.map((i) => (
+                  <option key={i._id} value={i._id}>
+                    {i.category}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -213,12 +219,6 @@ export default function UploadForm() {
                 <option value="Online">Online</option>
               </select>
             </div>
-
-           
-
-          
-
-           
 
             <div>
               <label className="font-semibold">Source (Optional)</label>
@@ -239,7 +239,6 @@ export default function UploadForm() {
               <label className="font-semibold">Additional Notes</label>
               <textarea name="notes" className="w-full p-2 border rounded" onChange={handleChange}></textarea>
             </div>
-
 
             <motion.button
               type="submit"

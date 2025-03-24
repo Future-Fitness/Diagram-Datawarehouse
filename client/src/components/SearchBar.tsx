@@ -1,17 +1,34 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, FC, ChangeEvent, FormEvent } from "react";
 
-const SearchBar = ({
+interface Suggestion {
+  _id: string;
+  title: string;
+  image_url?: string;
+  subjectId?: {
+    name: string;
+  };
+}
+
+interface SearchBarProps {
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  placeholder?: string;
+  getSuggestions?: ((prefix: string) => Promise<Suggestion[]>) | null;
+  darkMode?: boolean;
+}
+
+const SearchBar: FC<SearchBarProps> = ({
   searchTerm,
   setSearchTerm,
   placeholder = "Search...",
   getSuggestions = null,
-  darkMode = false
+  darkMode = false,
 }) => {
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const inputRef = useRef(null);
-  const suggestionsRef = useRef(null);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   // Color theme classes based on dark mode
   const themeClasses = {
@@ -36,7 +53,7 @@ const SearchBar = ({
       : "text-gray-500",
     subjectText: darkMode 
       ? "text-slate-400" 
-      : "text-gray-500"
+      : "text-gray-500",
   };
 
   // Fetch suggestions when user types
@@ -63,33 +80,31 @@ const SearchBar = ({
 
   // Handle clicks outside the suggestion box to close it
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleClickOutside = (event: globalThis.MouseEvent) => {
       if (
         suggestionsRef.current && 
-        !suggestionsRef.current.contains(event.target) &&
-        !inputRef.current.contains(event.target)
+        !suggestionsRef.current.contains(event.target as Node) &&
+        inputRef.current && !inputRef.current.contains(event.target as Node)
       ) {
         setShowSuggestions(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSearchChange = (e) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setShowSuggestions(true);
   };
 
-  const handleSuggestionClick = (suggestion) => {
+  const handleSuggestionClick = (suggestion: Suggestion) => {
     setSearchTerm(suggestion.title);
     setShowSuggestions(false);
   };
 
-  const handleSearchSubmit = (e) => {
+  const handleSearchSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setShowSuggestions(false);
     // The actual search is handled by the parent component through the debounced search term
@@ -182,11 +197,11 @@ const SearchBar = ({
                 </li>
               ))}
             </ul>
-          ) : searchTerm.length >= 2 ? (
+          ) : (
             <div className={`p-3 text-center ${themeClasses.notFoundText}`}>
               No suggestions found
             </div>
-          ) : null}
+          )}
         </div>
       )}
     </div>
