@@ -6,12 +6,21 @@ const multerS3 = require("multer-s3");
 const multer = require("multer");
 const Diagram = require("../models/Diagram"); // Use correct Mongoose model
 
-const FLASK_API_URL =process.env.FLASK_API_URL;
+const FLASK_API_URL = process.env.FLASK_API_URL;
 
 // ✅ Function to Save Analysis Data to MongoDB
 async function saveAnalysisData(imageData, analysisData) {
 
   try {
+    // 💡 Safely extract text (must be string, not object)
+    const safeExtractedText = typeof analysisData.text_result === 'string'
+      ? analysisData.text_result
+      : '';
+
+    // 💡 Safely extract symbols (must be array of objects with symbol strings)
+    const safeExtractedSymbols = Array.isArray(analysisData.extracted_symbols)
+      ? analysisData.extracted_symbols
+      : [];
     const { basic_metrics, color_analysis, quality_scores, quality_rating } = analysisData;
 
     const newDiagram = new Diagram({
@@ -59,14 +68,13 @@ async function saveAnalysisData(imageData, analysisData) {
 
       quality_rating: quality_rating || "Medium",
 
-      extracted_text: analysisData.text_result || "\n",  // ✅ Corrected
-      extracted_symbols: analysisData.extracted_symbols || [],  // ✅ Corrected
-    
-      
+      extracted_text: safeExtractedText,  // ✅ Corrected
+      extracted_symbols: safeExtractedSymbols,  // ✅ Corrected
+
+
       related_diagrams: [],
-      searchable_text: `${imageData.fileName} ${imageData.category} ${imageData.tags.join(" ")} ${
-        analysisData.extracted_text || ""
-      }`,
+      searchable_text: `${imageData.fileName} ${imageData.category} ${imageData.tags.join(" ")} ${analysisData.extracted_text || ""
+        }`,
     });
 
 
@@ -103,7 +111,7 @@ const processImage = async (file, imageMetadata) => {
     });
     console.log("🚀 ~ processImage ~ flaskResponse.data:", flaskResponse.data)
 
-    if (!flaskResponse || !flaskResponse.data ) {
+    if (!flaskResponse || !flaskResponse.data) {
       throw new Error("❌ No valid response from Flask API");
     }
 
@@ -137,13 +145,13 @@ const processImage = async (file, imageMetadata) => {
 
       // ✅ Mapping Metadata Fields
       title: imageMetadata.title || "Untitled",
-      subjectId: imageMetadata?.subjectId ,
-      diagramTypeId: imageMetadata.diagramType ,
+      subjectId: imageMetadata?.subjectId,
+      diagramTypeId: imageMetadata.diagramTypeId,
       sourceType: imageMetadata?.sourceType || "Unknown",
       pageNumber: imageMetadata?.pageNumber ? parseInt(imageMetadata?.pageNumber, 10) : null,
       author: imageMetadata?.author || "Unknown",
       notes: imageMetadata?.notes || "",
-      
+
       subjects: imageMetadata?.subjects || [],
       category: imageMetadata?.category || "Uncategorized",
       tags: imageMetadata?.tags || [],
@@ -178,7 +186,7 @@ const getAllImages = async () => {
     console.error(" Error fetching images:", error);
     throw error;
   }
-}; 
+};
 module.exports = {
   processImage,
   saveAnalysisData,

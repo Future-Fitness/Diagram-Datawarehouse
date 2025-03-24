@@ -137,32 +137,23 @@ def analyze():
     try:
         try:
             text_result = extract_text(image_path)
-            text_result = text_result.replace("\n", " ") 
-        except Exception as e:
-            text_result = {"null": f"NUll"}
+            if not isinstance(text_result, str):
+                text_result = str(text_result)
+            if not text_result.strip():
+                text_result = ""
+        except Exception:
+            text_result = ""
 
         try:
             symbols_result = extract_math_symbols(image_path)
-        except Exception as e:
-            symbols_result = {"null": f"NUll"}
+            if not isinstance(symbols_result, str):
+                symbols_result = str(symbols_result)
+            if not symbols_result.strip():
+                symbols_result = ""
+        except Exception:
+            symbols_result = ""
 
-# Normalize to dict if necessary
-        if not isinstance(text_result, dict):
-            text_result = {"text": text_result}
-
-        if not isinstance(symbols_result, dict):
-            symbols_result = {"symbols": symbols_result}
-        
-        
-        symbols_result = extract_math_symbols(image_path)
-
-        # print(text_result, '__141')
-        # print(symbols_result, '142')
-        if not isinstance(text_result, dict):
-            text_result = {"text": text_result}  # Wrap string in a dict
-
-        if not isinstance(symbols_result, dict):
-            symbols_result = {"symbols": symbols_result} 
+    # Now text_result and symbols_result are safe to send to backend
         
 
         # Get Image Quality Metrics
@@ -200,4 +191,4 @@ def health_check():
     return jsonify({'status': 'healthy'}), 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000) 
+    app.run(host='0.0.0.0', port=5001) 
