@@ -4,8 +4,8 @@
   "description": "A basic started boilerplate project for node",
   "main": "index.js",
   "scripts": {
-    "dev": "npx nodemon src/index.js",
-    "start": "nodemon src/index.js"
+    "dev": "node src/index.js",
+    "start": "node src/index.js"
   },
   "author": "Harsh ",
   "license": "ISC",
