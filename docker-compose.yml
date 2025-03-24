@@ -37,7 +37,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5001"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]  # Check port 5000 inside container
       interval: 30s
       retries: 3
       start_period: 30s
