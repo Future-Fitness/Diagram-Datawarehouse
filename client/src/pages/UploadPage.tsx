@@ -177,7 +177,7 @@ export default function UploadForm() {
                 <span className="mt-2 text-base">Select an image file</span>
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
               </label>
-              {imagePreview && <img src={imagePreview} alt="Preview" className="mt-4 rounded-lg shadow-md w-full" />}
+             
             </div>
           </>
         )}
@@ -190,6 +190,12 @@ export default function UploadForm() {
             onSubmit={handleSubmit}
             className="space-y-4"
           >
+
+            <div className="flex flex-col justify-center">
+          {imagePreview && <img src={imagePreview} alt="Preview" className="mt-4 rounded-lg shadow-md w-full" />}
+            <div>
+
+          
             <h2 className="text-2xl font-bold text-center text-gray-800">Step 2: Enter Image Metadata</h2>
 
             <input
@@ -260,8 +266,12 @@ export default function UploadForm() {
             >
               {uploading ? "Uploading..." : "Submit"}
             </motion.button>
+            </div>
+        </div>
           </motion.form>
         )}
+
+      
       </motion.div>
     </div>
   );
