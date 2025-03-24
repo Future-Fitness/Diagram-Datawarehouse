@@ -18,7 +18,7 @@ services:
       - ./backend/.env
     environment:
       - PORT=4000
-      - FLASK_API_URL=http://diagram-flask:5000  # ✅ Matches Flask service
+      - FLASK_API_URL=http://diagram-flask:5000 
 
       - REDIS_URL=redis://diagram-redis:6379  # ✅ New Redis connection URL
     networks:

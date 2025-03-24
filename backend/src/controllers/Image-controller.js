@@ -1,6 +1,6 @@
 
 
-const FLASK_API_URL = process.env.FLASK_API_URL || 'http://localhost:5001';
+const FLASK_API_URL =  'http://localhost:5001';
 const imageService = require('../services/image-service');
 // const analyzeAndUploadImage = async (req, res) => {
 //     try {
