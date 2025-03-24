@@ -40,11 +40,11 @@ interface AdvancedFilters {
   sortBy: string;
 }
 
-const GRAPHQL_ENDPOINT = "http://3.96.138.33:4000/graphql";
-const REST_ENDPOINT = "http://3.96.138.33:4000/api/v1/SubjectTypes";
-const SEARCH_ENDPOINT = "http://3.96.138.33:4000/api/v1/diagram"; // Basic search endpoint
-const ADVANCED_SEARCH_ENDPOINT = "http://3.96.138.33:4000/api/v1/diagram/advanced"; // Advanced search endpoint
-const AUTOCOMPLETE_ENDPOINT = "http://3.96.138.33:4000/api/v1/diagram/autocomplete"; // Autocomplete endpoint
+const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
+const REST_ENDPOINT = "http://localhost:4000/api/v1/SubjectTypes";
+const SEARCH_ENDPOINT = "http://localhost:4000/api/v1/diagram"; // Basic search endpoint
+const ADVANCED_SEARCH_ENDPOINT = "http://localhost:4000/api/v1/diagram/advanced"; // Advanced search endpoint
+const AUTOCOMPLETE_ENDPOINT = "http://localhost:4000/api/v1/diagram/autocomplete"; // Autocomplete endpoint
 
 // GraphQL Query to Fetch ALL Diagrams (No subject filter)
 const GET_ALL_DIAGRAMS_QUERY = gql`

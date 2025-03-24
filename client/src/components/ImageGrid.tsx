@@ -28,15 +28,31 @@ const ImageGrid: FC<ImageGridProps> = ({ images, error, darkMode = false }) => {
   };
 
   // Format date to human-readable
-  const formatDate = (dateString: string): string => {
+// Format date to human-readable
+const formatDate = (dateString: string): string => {
+  try {
+    // Check if the dateString is valid
+    if (!dateString || dateString === "undefined" || dateString === "null") {
+      return "Unknown date";
+    }
+    
     const date = new Date(dateString);
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) {
+      return "Invalid date";
+    }
+    
     return new Intl.DateTimeFormat("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     }).format(date);
-  };
-
+  } catch (error) {
+    console.error("Error formatting date:", dateString, error);
+    return "Date error";
+  }
+};
   // If there's an error, show error message
   if (error) {
     return (
@@ -72,8 +88,8 @@ const ImageGrid: FC<ImageGridProps> = ({ images, error, darkMode = false }) => {
           </div>
           <div className="p-4">
             <h3 className={`font-medium mb-1 ${themeClasses.title}`}>{image.title}</h3>
-            <p className={`text-sm ${themeClasses.date}`}>
-              {formatDate(image.createdAt)}
+            <p className={`text-sm ${themeClasses?.date}`}>
+              {formatDate(image?.createdAt)}
             </p>
             {image.description && (
               <p className="mt-2 text-sm line-clamp-2">{image.description}</p>
