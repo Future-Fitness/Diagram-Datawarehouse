@@ -6,7 +6,7 @@ const multerS3 = require("multer-s3");
 const multer = require("multer");
 const Diagram = require("../models/Diagram"); // Use correct Mongoose model
 
-const FLASK_API_URL ="http://127.0.0.1:5001";
+const FLASK_API_URL =process.env.FLASK_API_URL;
 
 // ✅ Function to Save Analysis Data to MongoDB
 async function saveAnalysisData(imageData, analysisData) {
