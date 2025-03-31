@@ -11,7 +11,7 @@ const createDiagramType = async (req, res) => {
     return res.status(200).json({
       message: "diagram created",
       success: true,
-      diagramType,
+      subject: diagramType, // returns the created diagram type as "subject"
     });
   } catch (error) {
     console.log(error);

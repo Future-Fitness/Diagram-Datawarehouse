@@ -3,15 +3,14 @@ const cors = require("cors");
 const routes = require("./routes");
 const { checkS3Connection } = require("./config/S3-config");
 const { connectDB } = require("./config/database");
+// Apollo and GraphQL imports
 const { ApolloServer } = require("apollo-server-express");
 const typeDefs = require("./graphql/schema");
 const resolvers = require("./graphql/resolvers");
-const Redis = require("ioredis");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// ✅ Enable CORS
 app.use(
   cors({
     origin: "*",
@@ -22,69 +21,41 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ API Route Health Check
-app.get("/", (req, res) => {
-  res.json({ message: "Welcome to the API" });
+// API Route Health Check
+app.get("/get", (req, res) => {
+  res.status(200).json({ message: "Welcome to the API" });
 });
 
-// ✅ Express Routes
+// Express Routes
 app.use("/api", routes);
 
+// Only start external services if NOT in test mode
 
 
-// ✅ Redis Connection
-// const redis = new Redis("redis://127.0.0.1:6379");
-
-// redis.on("connect", () => {
-//   console.log("✅ Connected to Redis");
-// });
-
-// redis.on("error", (err) => {
-//   console.error("❌ Redis error:", err);
-// });
-
-// ✅ Global Error Handling
-// app.use((err, req, res, next) => {
-//   console.error(err.stack);
-//   res.status(500).json({ message: "Something went wrong!" });
-// });
-
-
-
-// ✅ Start Express & Apollo Server
-async function startServer() {
-  try {
-    await connectDB();
-  await checkS3Connection()
-
-    const server = new ApolloServer({
-      typeDefs,
-      resolvers,
-      introspection: true, // ✅ Enables GraphQL Playground
-      playground: true,    // ✅ Allows testing queries
-    });
-
-    await server.start(); // ✅ Ensure server starts first
-    // server.applyMiddleware({ app }); // ✅ Apply GraphQL middleware
-    server.applyMiddleware({ app, cors: { origin: "*", credentials: true } });
-
-
-
-    app.listen(PORT, () => 
-      console.log(`🚀 Server running at http://localhost:${PORT}${server.graphqlPath}`)
-    );
-  } catch (err) {
-    console.error("❌ Failed to start server:", err);
-    process.exit(1);
-  }
+if (process.env.NODE_ENV !== "integration" && require.main === module) {
+  (async () => {
+    try {
+      await connectDB();
+      await checkS3Connection();
+      
+      const server = new ApolloServer({
+        typeDefs,
+        resolvers,
+        introspection: true,
+        playground: true,
+      });
+    
+      await server.start();
+      server.applyMiddleware({ app, cors: { origin: "*", credentials: true } });
+    
+      app.listen(PORT, () => {
+        console.log(`🚀 Server running at http://localhost:${PORT}${server.graphqlPath}`);
+      });
+    } catch (err) {
+      console.error("❌ Failed to start server:", err);
+      process.exit(1);
+    }
+  })();
 }
 
-// Start Server
-
-// ✅ 404 Route Not Found
-// app.use((req, res) => {
-//   res.status(404).json({ message: "Route not found" });
-// });
-
-// ✅ Start Server
-startServer();
+module.exports = { app };

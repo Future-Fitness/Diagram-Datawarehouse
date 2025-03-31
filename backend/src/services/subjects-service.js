@@ -10,7 +10,7 @@ async function createSubjectType(name, description) {
     return newSubject;
   } catch (error) {
     console.log(error);
-    throw new Error("Errir in creating Subject type ");
+    throw new Error("Error in creating Subject type ");
   }
 }
 
