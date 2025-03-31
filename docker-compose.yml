@@ -18,7 +18,7 @@ services:
       - ./backend/.env
     environment:
       - PORT=4000
-      - FLASK_API_URL=http://diagram-flask:5000 
+      - FLASK_API_URL=http://diagram-flask:5001 
 
       - REDIS_URL=redis://diagram-redis:6379  # ✅ New Redis connection URL
     networks:
@@ -31,7 +31,7 @@ services:
       context: ./image-analysis-service
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "5001:5001"
     volumes:
       - ./image-analysis-service:/app
     networks:
