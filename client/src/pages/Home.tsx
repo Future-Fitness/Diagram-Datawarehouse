@@ -75,7 +75,7 @@ export default function Home() {
           </div>
         </div>
         <section className="flex justify-center items-center">
-          <img src="../../public/image.png" alt="Diagram" className="rounded-lg h-200 w-full shadow-xl mb-8" />
+          <img src="/Diagram-Datawarehouse/image.png" alt="Diagram" className="rounded-lg h-200 w-full shadow-xl mb-8" />
         </section>
       </section>
 
