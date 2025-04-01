@@ -41,7 +41,7 @@ interface AdvancedFilters {
   sortBy: string;
 }
 
-const REST_ENDPOINT = `${import.meta.env.VITE_BASE_URL}api/v1/SubjectTypes`;
+const REST_ENDPOINT = `${import.meta.env.VITE_BASE_URL}v1/SubjectTypes`;
  const SEARCH_ENDPOINT =  `${import.meta.env.VITE_BASE_URL}v1/diagram`;
 const ADVANCED_SEARCH_ENDPOINT =  `${import.meta.env.VITE_BASE_URL}v1/diagram/advanced`;
 const AUTOCOMPLETE_ENDPOINT =  `${import.meta.env.VITE_BASE_URL}v1/diagram/autocomplete`;
