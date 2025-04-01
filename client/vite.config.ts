@@ -1,27 +1,18 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import rollupNodePolyFill from 'rollup-plugin-polyfill-node'
+import tailwindcss from '@tailwindcss/vite'
 
+// https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      // Polyfill crypto with crypto-browserify.
-      crypto: 'rollup-plugin-polyfill-node/polyfills/crypto-browserify'
-    }
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      define: {
-        global: 'globalThis'
-      }
-    }
-  },
+  base: '/datadiagram/',
+
   build: {
-    rollupOptions: {
-      plugins: [
-        rollupNodePolyFill()
-      ]
-    }
-  }
+    outDir: 'dist',
+    assetsDir: 'assets',
+    // Ensure proper MIME types for assets
+    assetsInlineLimit: 0,
+  },
+  plugins: [react(),
+    tailwindcss(),
+  ],
 })

@@ -1,4 +1,4 @@
-version: "3.8"
+
 
 services:
   backend:
@@ -32,20 +32,7 @@ services:
     networks:
       - app-network
 
-  frontend:
-    container_name: diagram-frontend
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    ports:
-      - "3010:80"
-    environment:
-      # This variable can be used by your React app (via env variables during build)
-      - REACT_APP_API_URL=http://diagram-backend:4000
-    depends_on:
-      - backend
-    networks:
-      - app-network
+  
 
 networks:
   app-network:
