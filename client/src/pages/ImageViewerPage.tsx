@@ -7,6 +7,7 @@ import ImageGrid from "../components/ImageGrid";
 import SearchBar from "../components/SearchBar";
 import { useDebounce } from "../hooks/useDebounce";
 
+
 interface Diagram {
   _id: string;
   title: string;
@@ -40,11 +41,12 @@ interface AdvancedFilters {
   sortBy: string;
 }
 
-const GRAPHQL_ENDPOINT = "http://localhost:4000/graphql";
-const REST_ENDPOINT = "http://localhost:4000/api/v1/SubjectTypes";
-const SEARCH_ENDPOINT = "http://localhost:4000/api/v1/diagram"; // Basic search endpoint
-const ADVANCED_SEARCH_ENDPOINT = "http://localhost:4000/api/v1/diagram/advanced"; // Advanced search endpoint
-const AUTOCOMPLETE_ENDPOINT = "http://localhost:4000/api/v1/diagram/autocomplete"; // Autocomplete endpoint
+const REST_ENDPOINT = `${import.meta.env.VITE_BASE_URL}api/v1/SubjectTypes`;
+ const SEARCH_ENDPOINT =  `${import.meta.env.VITE_BASE_URL}v1/diagram`;
+const ADVANCED_SEARCH_ENDPOINT =  `${import.meta.env.VITE_BASE_URL}v1/diagram/advanced`;
+const AUTOCOMPLETE_ENDPOINT =  `${import.meta.env.VITE_BASE_URL}v1/diagram/autocomplete`;
+
+const GRAPHQL_ENDPOINT = `${import.meta.env.VITE_GRAPHQL_BASE_URL}`;
 
 // GraphQL Query to Fetch ALL Diagrams (No subject filter)
 const GET_ALL_DIAGRAMS_QUERY = gql`

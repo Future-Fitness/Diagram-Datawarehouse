@@ -2,7 +2,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { BASE_URL } from "../App";
+
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 
@@ -108,7 +108,7 @@ export default function UploadForm() {
     Object.entries(formData).forEach(([key, value]) => form.append(key, value));
 
     try {
-      const response = await axios.post(`${BASE_URL}/analyze`, form, {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/analyze`, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -137,10 +137,10 @@ export default function UploadForm() {
 
   const fetchOptions = async () => {
     try {
-      const diagramRes = await axios.get(`${BASE_URL}/diagramTypes`);
+      const diagramRes = await axios.get(`${import.meta.env.VITE_BASE_URL}/diagramTypes`);
       setDiagram(diagramRes.data.diagramTypes);
 
-      const subjectRes = await axios.get(`${BASE_URL}/SubjectTypes`);
+      const subjectRes = await axios.get(`${import.meta.env.VITE_BASE_URL}/SubjectTypes`);
       setSubject(subjectRes.data.subjectTypes);
     } catch (error) {
       console.error("Error fetching data:", error);

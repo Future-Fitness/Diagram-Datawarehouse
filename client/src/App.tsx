@@ -29,6 +29,6 @@ function App() {
 }
 
 
-export const BASE_URL = import.meta.env.VITE_BASE_URL;
-export const GraphQL_URL = import.meta.env.VITE_GRAPHQL_BASE_URL
+
+
 export default App
