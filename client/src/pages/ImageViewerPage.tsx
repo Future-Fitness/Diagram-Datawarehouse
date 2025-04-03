@@ -6,19 +6,17 @@ import { request, gql } from "graphql-request";
 import ImageGrid from "../components/ImageGrid";
 import SearchBar from "../components/SearchBar";
 import { useDebounce } from "../hooks/useDebounce";
-const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/api/'
-const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
+// const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/api/'
+const VITE_BASE_URL ='http://localhost:4001/api/'
+// const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
+const VITE_GRAPHQL_BASE_URL=  'http://localhost:4001/graphql'
 
 
 interface Diagram {
   _id: string;
   title: string;
   image_url: string;
-  subjectId: {
-    _id: string;
-    name: string;
-    description?: string;
-  };
+
   created_at: string;
 }
 
@@ -58,11 +56,7 @@ const GET_ALL_DIAGRAMS_QUERY = gql`
         _id
         title
         image_url
-        subjectId {
-          _id
-          name
-          description
-        }
+
         created_at,
         extracted_text,
         file_info {
@@ -96,10 +90,7 @@ const GET_ALL_DIAGRAMS_BY_SUBJECT = gql`
         _id
         title
         image_url
-        subjectId {
-          _id
-          name
-        }
+    
         created_at
       }
       total

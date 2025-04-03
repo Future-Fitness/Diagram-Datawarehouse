@@ -16,7 +16,7 @@ async function createSubjectType(name, description) {
 
 async function getAllSubjectType() {
   try {
-    const Subjects = await subjectType.find({});
+    const Subjects = await subjectType.find({}).populate("diagrams");
     return Subjects;
   } catch (error) {
     console.log(error);

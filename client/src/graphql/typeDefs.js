@@ -82,7 +82,7 @@ const typeDefs = gql`
     getDiagramById(id: ID!): Diagram
     
     # Fetch diagrams by subject type
-    getAllDiagramsBySubjectType(subjectId: ID!, page: Int, limit: Int): DiagramPagination
+    getAllDiagramsBySubjectType(subjectId: ID, page: Int, limit: Int): DiagramPagination
   }
 `;
 

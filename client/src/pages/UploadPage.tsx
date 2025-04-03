@@ -2,24 +2,28 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 
+const VITE_BASE_URL = 'https://harshsaw.tech/datadiagram/api';
 
-const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/api'
-
-
-
+// Updated interfaces to match the new API response structure
+interface DiagramType {
+  _id: string;
+  name: string;
+  category: string;
+  description: string;
+  created_at: string;
+  __v: number;
+}
 
 interface SubjectType {
   _id: string;
   name: string;
-}
-
-interface DiagramType {
-  _id: string;
-  category: string;
+  description: string;
+  diagrams: DiagramType[];
+  created_at: string;
+  __v: number;
 }
 
 export default function UploadForm() {
@@ -28,8 +32,8 @@ export default function UploadForm() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  const [subject, setSubject] = useState<SubjectType[]>([]);
-  const [diagram, setDiagram] = useState<DiagramType[]>([]);
+  const [subjects, setSubjects] = useState<SubjectType[]>([]);
+  const [availableDiagrams, setAvailableDiagrams] = useState<DiagramType[]>([]);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -94,10 +98,27 @@ export default function UploadForm() {
 
   // 📌 Handle Input Changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    
     setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
+    
+    // When subject changes, update available diagrams
+    if (name === "subjectId") {
+      const selectedSubject = subjects.find(subject => subject._id === value);
+      if (selectedSubject) {
+        setAvailableDiagrams(selectedSubject.diagrams);
+        // Reset diagram selection
+        setFormData(prev => ({
+          ...prev,
+          diagramTypeId: ""
+        }));
+      } else {
+        setAvailableDiagrams([]);
+      }
+    }
   };
 
   // 📌 Handle Form Submission
@@ -130,32 +151,37 @@ export default function UploadForm() {
           notes: "",
           tags: "",
           source: "",
-        })
+        });
+        setImagePreview(null);
+        setImageFile(null);
         setStep(1);
       } else {
         toast.error("Upload Failed!");
       }
     } catch (error) {
       console.error("Upload Error:", error);
+      toast.error("Error during upload. Please try again.");
     }
     setUploading(false);
   };
 
-  const fetchOptions = async () => {
+  const fetchSubjectTypes = async () => {
     try {
-      const diagramRes = await axios.get(`${VITE_BASE_URL}/v1/diagramTypes`);
-      setDiagram(diagramRes.data.diagramTypes);
-
-      const subjectRes = await axios.get(`${VITE_BASE_URL}/v1/SubjectTypes`);
-      setSubject(subjectRes.data.subjectTypes);
+      const response = await axios.get(`${VITE_BASE_URL}/v1/SubjectTypes`);
+      if (response.data.success && response.data.subjectTypes) {
+        setSubjects(response.data.subjectTypes);
+      } else {
+        console.error("Invalid API response format:", response.data);
+        toast.error("Failed to load subject types.");
+      }
     } catch (error) {
-      console.error("Error fetching data:", error);
-      toast.error("Failed to load options.");
+      console.error("Error fetching subject types:", error);
+      toast.error("Failed to load subject types.");
     }
   };
 
   useEffect(() => {
-    fetchOptions();
+    fetchSubjectTypes();
   }, []);
 
   return (
@@ -172,7 +198,7 @@ export default function UploadForm() {
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md"
+        className="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl"
       >
         {step === 1 && (
           <>
@@ -183,7 +209,6 @@ export default function UploadForm() {
                 <span className="mt-2 text-base">Select an image file</span>
                 <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
               </label>
-             
             </div>
           </>
         )}
@@ -196,88 +221,154 @@ export default function UploadForm() {
             onSubmit={handleSubmit}
             className="space-y-4"
           >
+            <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Step 2: Enter Image Metadata</h2>
+            
+            <div className="flex flex-col md:flex-row gap-6 justify-between">
+              {/* Image preview on the left */}
+              <div className="md:w-2/5">
+                {imagePreview && (
+                  <div className="sticky top-6">
+                    <img src={imagePreview} alt="Preview" className="rounded-lg shadow-md w-full object-contain max-h-[70vh]" />
+                  </div>
+                )}
+              </div>
+              
+              {/* Form on the right */}
+              <div className="space-y-4 md:w-3/5">
 
-            <div className="flex flex-col justify-center">
-          {imagePreview && <img src={imagePreview} alt="Preview" className="mt-4 rounded-lg shadow-md w-full" />}
-            <div>
+                <div>
+                  <label className="font-semibold">Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    required
+                    className="w-full p-2 border rounded"
+                    placeholder="Title"
+                    value={formData.title}
+                    onChange={handleChange}
+                  />
+                </div>
 
-          
-            <h2 className="text-2xl font-bold text-center text-gray-800">Step 2: Enter Image Metadata</h2>
+                <div>
+                  <label className="font-semibold">Subject</label>
+                  <select 
+                    name="subjectId" 
+                    required 
+                    className="w-full p-2 border rounded" 
+                    value={formData.subjectId}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select Subject</option>
+                    {subjects.map((subject) => (
+                      <option key={subject._id} value={subject._id}>
+                        {subject.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            <input
-              type="text"
-              name="title"
-              required
-              className="w-full p-2 border rounded"
-              placeholder="Title"
-              onChange={handleChange}
-            />
+                <div>
+                  <label className="font-semibold">Diagram Type</label>
+                  <select 
+                    name="diagramTypeId" 
+                    required 
+                    className="w-full p-2 border rounded" 
+                    value={formData.diagramTypeId}
+                    onChange={handleChange}
+                    disabled={!formData.subjectId}
+                  >
+                    <option value="">Select Diagram Type</option>
+                    {availableDiagrams.map((diagram) => (
+                      <option key={diagram._id} value={diagram._id}>
+                        {diagram.name}
+                      </option>
+                    ))}
+                  </select>
+                  {!formData.subjectId && (
+                    <p className="text-sm text-gray-600 mt-1">Please select a subject first</p>
+                  )}
+                </div>
 
-            <select name="subjectId" required className="w-full p-2 border rounded" onChange={handleChange}>
-              <option value="">Select Subject</option>
-              {subject.map((i) => (
-                <option key={i._id} value={i._id}>
-                  {i.name}
-                </option>
-              ))}
-            </select>
+                <div>
+                  <label className="font-semibold">Source Type</label>
+                  <select 
+                    name="sourceType" 
+                    required 
+                    className="w-full p-2 border rounded" 
+                    value={formData.sourceType}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select Source Type</option>
+                    <option value="Book">Book</option>
+                    <option value="Research Paper">Research Paper</option>
+                    <option value="Online">Online</option>
+                  </select>
+                </div>
 
-            <div>
-              <label className="font-semibold">Diagram Type</label>
-              <select name="diagramTypeId" required className="w-full p-2 border rounded" onChange={handleChange}>
-                <option value="">Select Type</option>
-                {diagram.map((i) => (
-                  <option key={i._id} value={i._id}>
-                    {i.category}
-                  </option>
-                ))}
-              </select>
+                <div>
+                  <label className="font-semibold">Source (Optional)</label>
+                  <input 
+                    type="text" 
+                    name="source" 
+                    className="w-full p-2 border rounded" 
+                    value={formData.source}
+                    onChange={handleChange} 
+                  />
+                </div>
+
+                <div>
+                  <label className="font-semibold">Page Number (Optional)</label>
+                  <input 
+                    type="number" 
+                    name="pageNumber" 
+                    className="w-full p-2 border rounded" 
+                    value={formData.pageNumber}
+                    onChange={handleChange} 
+                  />
+                </div>
+
+                <div>
+                  <label className="font-semibold">Author (Optional)</label>
+                  <input 
+                    type="text" 
+                    name="author" 
+                    className="w-full p-2 border rounded" 
+                    value={formData.author}
+                    onChange={handleChange} 
+                  />
+                </div>
+
+                <div>
+                  <label className="font-semibold">Additional Notes</label>
+                  <textarea 
+                    name="notes" 
+                    className="w-full p-2 border rounded" 
+                    value={formData.notes}
+                    onChange={handleChange}
+                  ></textarea>
+                </div>
+
+                <motion.button
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-2 rounded-lg mt-4"
+                  disabled={uploading}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  {uploading ? "Uploading..." : "Submit"}
+                </motion.button>
+              </div>
             </div>
-
-            <div>
-              <label className="font-semibold">Source Type</label>
-              <select name="sourceType" required className="w-full p-2 border rounded" onChange={handleChange}>
-                <option value="">Select Source Type</option>
-                <option value="Book">Book</option>
-                <option value="Research Paper">Research Paper</option>
-                <option value="Online">Online</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="font-semibold">Source (Optional)</label>
-              <input type="text" name="source" className="w-full p-2 border rounded" onChange={handleChange} />
-            </div>
-
-            <div>
-              <label className="font-semibold">Page Number (Optional)</label>
-              <input type="number" name="pageNumber" className="w-full p-2 border rounded" onChange={handleChange} />
-            </div>
-
-            <div>
-              <label className="font-semibold">Author (Optional)</label>
-              <input type="text" name="author" className="w-full p-2 border rounded" onChange={handleChange} />
-            </div>
-
-            <div>
-              <label className="font-semibold">Additional Notes</label>
-              <textarea name="notes" className="w-full p-2 border rounded" onChange={handleChange}></textarea>
-            </div>
-
-            <motion.button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded-lg mt-4"
-              disabled={uploading}
-              whileHover={{ scale: 1.05 }}
-            >
-              {uploading ? "Uploading..." : "Submit"}
-            </motion.button>
-            </div>
-        </div>
           </motion.form>
         )}
-
-      
+        
+        {/* Responsive adjustment for mobile */}
+        <style jsx>{`
+          @media (max-width: 768px) {
+            .max-w-md {
+              max-width: 90%;
+            }
+          }
+        `}</style>
       </motion.div>
     </div>
   );

@@ -5,6 +5,7 @@ const typeDefs = gql`
     _id: ID!
     name: String!
     description: String
+    diagrams: [Diagram!]!
     createdAt: String!
   }
 
@@ -13,7 +14,7 @@ const typeDefs = gql`
     image_url: String!
     filename: String!
     title: String!
-    subjectId: Subject!
+    subjectId: Subject
     diagramTypeId: String!
     sourceType: String!
     pageNumber: Int
@@ -97,7 +98,7 @@ const typeDefs = gql`
     image_url: String!
     filename: String!
     title: String!
-    subjectId: ID! # ✅ Changed to ID type
+    subjectId: ID # ✅ Changed to ID type
     diagramTypeId: ID! # ✅ Changed to ID type
     sourceType: String!
     pageNumber: Int
@@ -111,8 +112,8 @@ const typeDefs = gql`
 
   type Query {
     getAllDiagrams(page: Int, limit: Int): DiagramPagination
-    getDiagramById(id: ID!): Diagram
-    getAllDiagramsBySubjectType(subjectId: ID!, page: Int, limit: Int): DiagramPagination 
+    getDiagramById(id: ID): Diagram
+    getAllDiagramsBySubjectType(subjectId: ID, page: Int, limit: Int): DiagramPagination 
   }
 
 

@@ -6,17 +6,20 @@ const resolvers = {
     // ✅ Fetch all diagrams (Only pagination)
     getAllDiagrams: async (_, { page = 1, limit = 10 }) => {
       try {
-        const total = await Diagram.countDocuments();
+        const total = await DiagramType.countDocuments();
         const totalPages = Math.ceil(total / limit);
 
-        const diagrams = await Diagram.find()
-          .sort({ created_at: -1 }) // Sort by newest first
+        const diagrams = await DiagramType.find()
+          .sort({ created_at: -1 })
           .skip((page - 1) * limit)
           .limit(limit)
-          .populate("subjectId")
+          .populate("subjectId");
 
-          
-          
+        // Replace null category with a default value
+        // const diagramsWithFallback = diagrams.map((diagram) => ({
+        //   ...diagram._doc,
+        //   category: diagram.category || "Uncategorized",
+        // }));
 
         return {
           diagrams,
@@ -32,7 +35,7 @@ const resolvers = {
     // ✅ Fetch a single diagram by ID
     getDiagramById: async (_, { id }) => {
       try {
-        return await Diagram.findById(id);
+        return await Diagram.findById(id).populate("diagrams");
       } catch (error) {
         throw new Error("Error fetching diagram");
       }

@@ -3,7 +3,7 @@ const subjectService = require("../services/subjects-service");
 const createSubjectType = async (req, res) => {
   const { name, description } = req.body;
   try {
-    const subject = await subjectService.createSubjectType(name, description);
+    const subject = await subjectService.createSubjectType(name, description,   category);
     return res.status(200).json({
       message: "subject created",
       success: true,
