@@ -6,7 +6,8 @@ import { request, gql } from "graphql-request";
 import ImageGrid from "../components/ImageGrid";
 import SearchBar from "../components/SearchBar";
 import { useDebounce } from "../hooks/useDebounce";
-import { VITE_BASE_URL, VITE_GRAPHQL_BASE_URL } from "../App";
+const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/'
+const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
 
 
 interface Diagram {

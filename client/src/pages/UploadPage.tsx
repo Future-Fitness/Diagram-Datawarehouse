@@ -5,7 +5,12 @@ import { useNavigate } from "react-router-dom";
 
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import { VITE_BASE_URL } from "../App";
+
+
+const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/'
+
+
+
 
 interface SubjectType {
   _id: string;
