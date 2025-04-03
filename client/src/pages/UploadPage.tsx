@@ -143,10 +143,10 @@ export default function UploadForm() {
 
   const fetchOptions = async () => {
     try {
-      const diagramRes = await axios.get(`${VITE_BASE_URL}/diagramTypes`);
+      const diagramRes = await axios.get(`${VITE_BASE_URL}/v1/diagramTypes`);
       setDiagram(diagramRes.data.diagramTypes);
 
-      const subjectRes = await axios.get(`${VITE_BASE_URL}/SubjectTypes`);
+      const subjectRes = await axios.get(`${VITE_BASE_URL}/v1/SubjectTypes`);
       setSubject(subjectRes.data.subjectTypes);
     } catch (error) {
       console.error("Error fetching data:", error);
