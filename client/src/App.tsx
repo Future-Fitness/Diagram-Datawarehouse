@@ -28,7 +28,7 @@ function App() {
   )
 }
 
-
-
+export const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/'
+export const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
 
 export default App
