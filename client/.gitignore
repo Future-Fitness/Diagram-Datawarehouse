@@ -6,9 +6,7 @@
 # Testing
 /coverage
 
-# Production
-/build
-/dist
+
 
 # Environment variables
 .env
