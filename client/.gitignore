@@ -4,8 +4,7 @@
 .pnp.js
 
 # Testing
-/coverage
-dist/
+
 
 
 # Environment variables
