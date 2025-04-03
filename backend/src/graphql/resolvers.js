@@ -6,28 +6,27 @@ const resolvers = {
     // ✅ Fetch all diagrams (Only pagination)
     getAllDiagrams: async (_, { page = 1, limit = 10 }) => {
       try {
+        console.log("Fetching diagrams with page:", page, "and limit:", limit);
+    
         const total = await DiagramType.countDocuments();
-        const totalPages = Math.ceil(total / limit);
-
+        console.log("Total diagrams:", total);
+    
         const diagrams = await DiagramType.find()
           .sort({ created_at: -1 })
           .skip((page - 1) * limit)
-          .limit(limit)
-          .populate("subjectId");
-
-        // Replace null category with a default value
-        // const diagramsWithFallback = diagrams.map((diagram) => ({
-        //   ...diagram._doc,
-        //   category: diagram.category || "Uncategorized",
-        // }));
-
+          .limit(limit);
+    
+        console.log("Fetched diagrams:", diagrams);
+    
         return {
           diagrams,
           total,
-          totalPages,
+          totalPages: Math.ceil(total / limit),
           currentPage: page,
         };
       } catch (error) {
+        console.error("❌ Error in getAllDiagrams resolver:", error.message);
+        console.error("❌ Stack trace:", error.stack);
         throw new Error("Error fetching diagrams");
       }
     },

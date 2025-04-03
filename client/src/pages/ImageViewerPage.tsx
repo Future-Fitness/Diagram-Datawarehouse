@@ -8,8 +8,8 @@ import SearchBar from "../components/SearchBar";
 import { useDebounce } from "../hooks/useDebounce";
 const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/api/'
 // const VITE_BASE_URL ='http://localhost:4001/api/'
-const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
-// const VITE_GRAPHQL_BASE_URL=  'http://localhost:4001/graphql'
+// const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
+const VITE_GRAPHQL_BASE_URL=  'http://localhost:4001/graphql'
 
 
 interface Diagram {

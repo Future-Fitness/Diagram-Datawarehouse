@@ -40,6 +40,6 @@ router.get('/diagram/autocomplete', diagramSearchController.getAutocompleteSugge
 router.get('/diagram/:diagramId/similar', diagramSearchController.findSimilarDiagrams);
 
 
-
+router.get("/getAllDiagrams",ImageController.getDiagrams );
 
 module.exports = router;

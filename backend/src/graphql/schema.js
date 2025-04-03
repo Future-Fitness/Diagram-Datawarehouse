@@ -15,7 +15,7 @@ const typeDefs = gql`
     filename: String!
     title: String!
     subjectId: Subject
-    diagramTypeId: String!
+    diagramTypeId: String
     sourceType: String!
     pageNumber: Int
     author: String
@@ -99,7 +99,7 @@ const typeDefs = gql`
     filename: String!
     title: String!
     subjectId: ID # ✅ Changed to ID type
-    diagramTypeId: ID! # ✅ Changed to ID type
+    diagramTypeId: ID # ✅ Changed to ID type
     sourceType: String!
     pageNumber: Int
     author: String

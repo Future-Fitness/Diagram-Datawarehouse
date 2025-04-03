@@ -135,7 +135,7 @@ export default function UploadForm() {
     Object.entries(formData).forEach(([key, value]) => form.append(key, value));
 
     try {
-      const response = await axios.post(`${VITE_BASE_URL}/analyze`, form, {
+      const response = await axios.post(`${VITE_BASE_URL}/v1/analyze`, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

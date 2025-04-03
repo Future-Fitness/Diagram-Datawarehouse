@@ -131,12 +131,12 @@ export default function Home() {
               Our REST API provides endpoints for diagram upload, retrieval, and search operations.
             </p>
             <div className="bg-slate-900 p-4 rounded-lg text-slate-300 font-mono text-sm mb-4">
-              <div className="mb-2">GET /api/v1/diagram?query=circuit</div>
-              <div className="mb-2">POST /api/search/diagrams/advanced</div>
-              <div>GET /api/v1/diagram/autocomplete?prefix=circ</div>
+              <div className="mb-2">GET https://harshsaw.tech/datadiagram/api/v1/getAllDiagrams</div>
+              <div className="mb-2">GET https://harshsaw.tech/datadiagram/api/v1/getAllDiagrams?text={}</div>
+
             </div>
             <a 
-              href="https://api-docs.diagram-warehouse.edu" 
+              href="https://harshsaw.tech/datadiagram/api/v1/getAllDiagrams" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-block text-cyan-400 hover:text-cyan-300 font-medium"
@@ -155,12 +155,12 @@ export default function Home() {
             <div className="bg-slate-900 p-4 rounded-lg text-slate-300 font-mono text-sm mb-4">
               <div className="mb-2">query getAllDiagrams(page: 1, limit: 10) &#123;</div>
               <div className="mb-2">&nbsp;&nbsp;diagrams &#123;</div>
-              <div>&nbsp;&nbsp;&nbsp;&nbsp;title, image_url, subjectId &#123; name &#125;</div>
+              <div>&nbsp;&nbsp;&nbsp;&nbsp;title, image_url, category &#123; name &#125;</div>
               <div className="mb-2">&nbsp;&nbsp;&#125;</div>
               <div>&#125;</div>
             </div>
             <a 
-              href="https://graphql-docs.diagram-warehouse.edu" 
+              href="https://harshsaw.tech/datadiagram/graphql" 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-block text-cyan-400 hover:text-cyan-300 font-medium"
