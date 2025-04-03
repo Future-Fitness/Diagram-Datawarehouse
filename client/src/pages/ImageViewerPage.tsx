@@ -6,7 +6,7 @@ import { request, gql } from "graphql-request";
 import ImageGrid from "../components/ImageGrid";
 import SearchBar from "../components/SearchBar";
 import { useDebounce } from "../hooks/useDebounce";
-const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/'
+const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/api/'
 const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
 
 
@@ -367,6 +367,15 @@ export default function DiagramSearchPage() {
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-center text-cyan-400">Search Diagrams</h1>
       </header>
+
+      <div className="mb-6">
+  <button
+    onClick={() => navigate(-1)} // Navigate to the previous page
+    className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-md transition-colors shadow-lg"
+  >
+    Back
+  </button>
+</div>
 
       {/* Main Search Bar */}
       <div className="mb-6">
