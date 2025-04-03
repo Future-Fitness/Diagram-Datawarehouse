@@ -132,7 +132,72 @@ const analyzeAndUploadImage = async (req, res) => {
     }
   }; 
 
+
+
+  const Diagram = require("../models/Diagram");
+
+const getDiagrams = async (req, res) => {
+  try {
+    const {
+      text,
+      quality,
+      subjectId,
+      diagramTypeId,
+      tag,
+      minQualityScore,
+      limit = 20,
+      page = 1,
+    } = req.query;
+
+    const query = {};
+
+    if (text) {
+      query.extracted_text = { $regex: text, $options: "i" };
+    }
+
+    if (quality) {
+      query.quality_rating = quality;
+    }
+
+    if (subjectId) {
+      query.subjectId = subjectId;
+    }
+
+    if (diagramTypeId) {
+      query.diagramTypeId = diagramTypeId;
+    }
+
+    if (tag) {
+      query.tags = tag;
+    }
+
+    if (minQualityScore) {
+      query["quality_scores.overall_quality"] = { $gte: parseFloat(minQualityScore) };
+    }
+
+    const diagrams = await Diagram.find(query)
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .sort({ created_at: -1 });
+
+    const total = await Diagram.countDocuments(query);
+
+    res.json({
+      success: true,
+      page: Number(page),
+      limit: Number(limit),
+      total,
+      diagrams,
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
 module.exports = {
     analyzeAndUploadImage,
-    getAllImages
+    getAllImages,
+    getDiagrams
 };
