@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { ImageData } from './types';
+
 import ImageDetailVisualization from './ImageDetailVisualization';
 
 interface ImageDetailModalProps {
-  image: ImageData | null;
+  image: any| null;
   isOpen: boolean;
   onClose: () => void;
   darkMode?: boolean;

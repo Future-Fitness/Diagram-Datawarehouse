@@ -204,7 +204,7 @@ export default function Home() {
               rel="noopener noreferrer"
               className="bg-slate-800 p-6 rounded-xl shadow-xl border border-slate-700 hover:border-cyan-500 transition-colors group"
             >
-              <div className="flex items-center mb-4">
+              <div className="flex items-center mb-4" onClick={() => navigate('/documentation')}>
                 <FaBook className="text-3xl mr-3 text-white" />
                 <h3 className="font-semibold text-xl text-white">Documentation</h3>
               </div>

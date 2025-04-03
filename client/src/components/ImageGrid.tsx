@@ -86,12 +86,7 @@ const ImageGrid: FC<ImageGridProps> = ({ images, error, darkMode = false }) => {
   };
 
   // Format file size
-  const formatFileSize = (size: number): string => {
-    if (size < 1) {
-      return `${(size * 1024).toFixed(0)} KB`;
-    }
-    return `${size.toFixed(2)} MB`;
-  };
+
 
   // Open modal with selected image
   const openImageModal = (image: ImageData) => {

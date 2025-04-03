@@ -1,8 +1,8 @@
 
 
-type Props = {}
 
-const documentation = (props: Props) => {
+
+const documentation = () => {
   return (
     <div>documentation</div>
   )

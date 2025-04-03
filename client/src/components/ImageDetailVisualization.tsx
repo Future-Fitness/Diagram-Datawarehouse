@@ -1,18 +1,97 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts';
-import { ImageData } from './types';
+
+// Define proper types for all data structures
+interface Dimensions {
+  width: number;
+  height: number;
+  megapixels: number;
+}
+
+interface FileInfo {
+  format: string;
+  resolution: string;
+  file_size_mb: number;
+  dimensions?: Dimensions;
+}
+
+interface QualityScores {
+  overall_quality: number;
+  blur_score?: number;
+  brightness_score?: number;
+  contrast_score?: number;
+  detail_score?: number;
+  edge_density?: number;
+  noise_level?: number;
+  sharpness?: number;
+}
+
+interface ColorDistribution {
+  mean_rgb: number[];
+  mean_hsv: number[];
+  mean_lab: number[];
+  std_rgb: number[];
+}
+
+interface ColorAnalysis {
+  dominant_colors?: number[][];
+  color_distribution?: ColorDistribution;
+}
+
+type ObjectId = {
+  $oid: string;
+};
+
+interface ImageData {
+  _id: string;
+  title: string;
+  image_url: string;
+  created_at: string;
+  subjectId?: ObjectId;
+  diagramTypeId?: ObjectId;
+  sub_category?: string;
+  sourceType?: string;
+  author?: string;
+  notes?: string;
+  filename?: string;
+  extracted_text?: string;
+  file_info?: FileInfo;
+  quality_scores?: QualityScores;
+  color_analysis?: ColorAnalysis;
+  quality_rating?: string;
+  upload_date?: string;
+}
 
 interface ImageDetailVisualizationProps {
   image: ImageData;
   darkMode?: boolean;
 }
 
+// Interface for color distribution chart data
+interface ColorDistributionItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+// Interface for quality scores radar chart data
+interface QualityScoreItem {
+  name: string;
+  value: number;
+}
+
+// Interface for quality rating result
+interface QualityRatingResult {
+  text: string;
+  color: string;
+}
+
 const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({ 
   image, 
-  darkMode = true 
+
 }) => {
   // Format date to human-readable
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString?: string): string => {
     if (!dateString) return "Unknown date";
     
     try {
@@ -30,7 +109,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
   };
 
   // Format file size
-  const formatFileSize = (size?: number) => {
+  const formatFileSize = (size?: number): string => {
     if (!size) return "Unknown";
     if (size < 1) {
       return `${(size * 1024).toFixed(0)} KB`;
@@ -39,13 +118,13 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
   };
 
   // Convert RGB array to CSS color
-  const rgbToColor = (rgb?: number[]) => {
+  const rgbToColor = (rgb?: number[]): string => {
     if (!rgb || rgb.length < 3) return "#888888";
     return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
   };
 
   // Get contrast text color (black or white) based on background
-  const getContrastColor = (rgb?: number[]) => {
+  const getContrastColor = (rgb?: number[]): string => {
     if (!rgb || rgb.length < 3) return "#ffffff";
     
     // Calculate relative luminance
@@ -55,7 +134,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
   };
 
   // Prepare data for color distribution chart
-  const prepareColorDistribution = () => {
+  const prepareColorDistribution = (): ColorDistributionItem[] => {
     if (!image.color_analysis?.dominant_colors?.length) return [];
     
     return image.color_analysis.dominant_colors.map((color, index) => ({
@@ -66,16 +145,16 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
   };
 
   // Normalize quality scores for radar chart
-  const normalizeQualityScores = () => {
+  const normalizeQualityScores = (): QualityScoreItem[] => {
     if (!image.quality_scores) return [];
     
-    const normalizeValue = (value?: number, oldMin = 0, oldMax = 100, newMin = 0, newMax = 100) => {
+    const normalizeValue = (value?: number, oldMin = 0, oldMax = 100, newMin = 0, newMax = 100): number => {
       if (value === undefined) return 0;
       const normalizedValue = ((value - oldMin) / (oldMax - oldMin)) * (newMax - newMin) + newMin;
       return Math.max(newMin, Math.min(newMax, normalizedValue));
     };
     
-    const scoreMapping = [
+    const scoreMapping: QualityScoreItem[] = [
       { name: "Quality", value: image.quality_scores.overall_quality || 0 },
       { name: "Sharpness", value: normalizeValue(image.quality_scores.sharpness, 0, 100, 0, 100) },
       { name: "Detail", value: normalizeValue(image.quality_scores.detail_score, 0, 100, 0, 100) },
@@ -88,7 +167,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
   };
 
   // Determine quality rating text and color
-  const getQualityRating = () => {
+  const getQualityRating = (): QualityRatingResult => {
     if (!image.quality_scores?.overall_quality) return { text: "Unknown", color: "gray-500" };
     
     const score = image.quality_scores.overall_quality;
@@ -101,7 +180,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
   };
 
   // Helper function to get a readable quality description
-  const getQualityDescription = () => {
+  const getQualityDescription = (): string => {
     if (!image.quality_scores?.overall_quality) return "";
     
     const score = image.quality_scores.overall_quality;
@@ -120,7 +199,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
     }
     
     // Add specific recommendations based on individual metrics if available
-    const recommendations = [];
+    const recommendations: string[] = [];
     
     if (image.quality_scores.blur_score && image.quality_scores.blur_score > 200) {
       recommendations.push("Image appears blurry. Consider using a sharper source image.");
@@ -152,6 +231,17 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
   const qualityDescription = getQualityDescription();
   const colorDistributionData = prepareColorDistribution();
   const qualityScoresData = normalizeQualityScores();
+
+  // Safe access helper functions to avoid TypeScript errors
+  const safeJoin = (arr?: number[], separator = ','): string => {
+    if (!arr || !Array.isArray(arr)) return '';
+    return arr.join(separator);
+  };
+
+  const safeMap = <T, U>(arr: T[] | undefined, callback: (item: T, index: number) => U): U[] => {
+    if (!arr || !Array.isArray(arr)) return [];
+    return arr.map(callback);
+  };
 
   return (
     <div className="bg-slate-800 text-slate-200 rounded-lg shadow-xl w-full max-w-6xl mx-auto overflow-hidden">
@@ -255,12 +345,6 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
                   className="w-full h-auto rounded shadow-lg"
                 />
               </div>
-              
-              {/* <div className="mt-4 p-3 border border-dashed border-slate-500 rounded-lg">
- Color analysis data is not available for this image. Consider running color analysis to view color distribution and dominant colors.                <p className="text-slate-300 text-sm">
-                  <span className="text-amber-400">ℹ️</span>
-                </p>
-              </div> */}
             </div>
           )}
           
@@ -273,7 +357,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
               <div className="mb-6">
                 <p className="text-sm mb-2 text-slate-400">Dominant Colors</p>
                 <div className="flex items-center space-x-4">
-                  {image.color_analysis.dominant_colors.map((color, i) => (
+                  {safeMap(image.color_analysis.dominant_colors, (color, i) => (
                     <div key={i} className="group relative">
                       <div 
                         className="w-16 h-16 rounded-lg border border-slate-500 transition-transform group-hover:scale-110 shadow-lg"
@@ -284,7 +368,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
                           style={{ color: getContrastColor(color) }}
                         >
                           <span className="text-xs font-mono bg-black bg-opacity-40 px-1 py-0.5 rounded">
-                            RGB({color.join(',')})
+                            RGB({safeJoin(color)})
                           </span>
                         </div>
                       </div>
@@ -425,79 +509,28 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
             </div>
           )}
 
-          {/* Metadata Information */}
-          {/* <div className="bg-slate-700 rounded-lg p-4 border border-slate-600">
-            <h2 className="font-medium text-xl mb-4 text-slate-200">Metadata</h2>
-            <div className="space-y-3">
-              <div>
-                <p className="text-xs text-slate-400">ID</p>
-                <p className="font-mono text-sm text-slate-300 overflow-auto whitespace-nowrap py-1 px-2 bg-slate-800 rounded">
-                  {image._id}
-                </p>
-              </div>
-              {image.filename && (
-                <div>
-                  <p className="text-xs text-slate-400">Filename</p>
-                  <p className="font-medium text-slate-200 truncate">{image.filename}</p>
-                </div>
-              )}
-              {image.author && (
-                <div>
-                  <p className="text-xs text-slate-400">Author</p>
-                  <p className="font-medium text-slate-200">{image.author}</p>
-                </div>
-              )}
-              {image.upload_date && (
-                <div>
-                  <p className="text-xs text-slate-400">Upload Date</p>
-                  <p className="font-medium text-slate-200">{formatDate(image.upload_date)}</p>
-                </div>
-              )}
-              {image.subjectId && (
-                <div>
-                  <p className="text-xs text-slate-400">Subject ID</p>
-                  <p className="font-mono text-sm text-slate-300 overflow-auto whitespace-nowrap py-1 px-2 bg-slate-800 rounded">
-                    {typeof image.subjectId === 'object' && '$oid' in image.subjectId 
-                      ? image.subjectId.$oid 
-                      : 'N/A'}
-                  </p>
-                </div>
-              )}
-              {image.diagramTypeId && (
-                <div>
-                  <p className="text-xs text-slate-400">Diagram Type ID</p>
-                  <p className="font-mono text-sm text-slate-300 overflow-auto whitespace-nowrap py-1 px-2 bg-slate-800 rounded">
-                    {image.diagramTypeId.$oid || "N/A"}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div> */}
-          
           {/* Image Statistics */}
-          {!image.color_analysis && (
+          {!image.color_analysis && image.file_info?.dimensions && (
             <div className="bg-slate-700 rounded-lg p-4 border border-slate-600">
               <h2 className="font-medium text-xl mb-4 text-slate-200">Image Statistics</h2>
               <div className="space-y-3">
-                {image.file_info?.dimensions && (
-                  <div className="bg-slate-800 p-3 rounded-lg">
-                    <h3 className="text-slate-300 font-medium mb-2">Dimensions</h3>
-                    <div className="grid grid-cols-3 gap-3 text-center">
-                      <div>
-                        <p className="text-xs text-slate-400">Width</p>
-                        <p className="text-lg font-medium text-slate-200">{image.file_info.dimensions.width}px</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-400">Height</p>
-                        <p className="text-lg font-medium text-slate-200">{image.file_info.dimensions.height}px</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-400">Megapixels</p>
-                        <p className="text-lg font-medium text-slate-200">{image.file_info.dimensions.megapixels.toFixed(2)}</p>
-                      </div>
+                <div className="bg-slate-800 p-3 rounded-lg">
+                  <h3 className="text-slate-300 font-medium mb-2">Dimensions</h3>
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div>
+                      <p className="text-xs text-slate-400">Width</p>
+                      <p className="text-lg font-medium text-slate-200">{image.file_info.dimensions.width}px</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400">Height</p>
+                      <p className="text-lg font-medium text-slate-200">{image.file_info.dimensions.height}px</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400">Megapixels</p>
+                      <p className="text-lg font-medium text-slate-200">{image.file_info.dimensions.megapixels.toFixed(2)}</p>
                     </div>
                   </div>
-                )}
+                </div>
                 
                 <div className="bg-slate-800 p-3 rounded-lg">
                   <h3 className="text-slate-300 font-medium mb-2">Usage Tips</h3>
@@ -531,10 +564,10 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
                     <div className="flex items-center mt-1">
                       <div 
                         className="w-8 h-8 rounded mr-2 border border-slate-500"
-                        style={{ backgroundColor: `rgb(${image.color_analysis.color_distribution.mean_rgb.map(v => Math.round(v)).join(',')})` }}
+                        style={{ backgroundColor: `rgb(${safeMap(image.color_analysis.color_distribution.mean_rgb, v => Math.round(v)).join(',')})` }}
                       ></div>
                       <p className="font-mono text-sm text-slate-300">
-                        ({image.color_analysis.color_distribution.mean_rgb.map(v => Math.round(v)).join(', ')})
+                        ({safeMap(image.color_analysis.color_distribution.mean_rgb, v => Math.round(v)).join(', ')})
                       </p>
                     </div>
                   </div>
@@ -543,7 +576,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
                   <div>
                     <p className="text-xs text-slate-400">STD RGB</p>
                     <p className="font-mono text-sm text-slate-300">
-                      ({image.color_analysis.color_distribution.std_rgb.map(v => Math.round(v)).join(', ')})
+                      ({safeMap(image.color_analysis.color_distribution.std_rgb, v => Math.round(v)).join(', ')})
                     </p>
                   </div>
                 )}
@@ -551,7 +584,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
                   <div>
                     <p className="text-xs text-slate-400">Mean HSV</p>
                     <p className="font-mono text-sm text-slate-300">
-                      ({image.color_analysis.color_distribution.mean_hsv.map(v => Math.round(v)).join(', ')})
+                      ({safeMap(image.color_analysis.color_distribution.mean_hsv, v => Math.round(v)).join(', ')})
                     </p>
                   </div>
                 )}
@@ -559,7 +592,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
                   <div>
                     <p className="text-xs text-slate-400">Mean LAB</p>
                     <p className="font-mono text-sm text-slate-300">
-                      ({image.color_analysis.color_distribution.mean_lab.map(v => Math.round(v)).join(', ')})
+                      ({safeMap(image.color_analysis.color_distribution.mean_lab, v => Math.round(v)).join(', ')})
                     </p>
                   </div>
                 )}

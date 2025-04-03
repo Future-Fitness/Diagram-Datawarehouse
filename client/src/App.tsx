@@ -21,6 +21,8 @@ function App() {
         <Route path="/signup" element={<Auth isSignUp= {true} />} />
         <Route path="/upload" element={<UploadForm />} />
         <Route path="/imagecollection" element={<ViewAllImages />} />
+        <Route path="/documentation" element={<ViewAllImages />} />
+        
 
       </Routes>
 
