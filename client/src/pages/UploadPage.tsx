@@ -7,7 +7,7 @@ import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 
 
-const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/'
+const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/api'
 
 
 
