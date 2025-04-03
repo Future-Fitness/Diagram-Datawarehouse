@@ -1,5 +1,7 @@
+// backend/src/graphql/resolvers.js
 const { default: mongoose } = require("mongoose");
 const Diagram = require("../models/Diagram");
+const DiagramType = require("../models/DiagramType"); // Import the missing DiagramType model
 
 const resolvers = {
   Query: {
@@ -8,15 +10,16 @@ const resolvers = {
       try {
         console.log("Fetching diagrams with page:", page, "and limit:", limit);
     
-        const total = await DiagramType.countDocuments();
+        const total = await Diagram.countDocuments(); // Use Diagram instead of DiagramType
         console.log("Total diagrams:", total);
     
-        const diagrams = await DiagramType.find()
+        const diagrams = await Diagram.find() // Use Diagram instead of DiagramType
           .sort({ created_at: -1 })
           .skip((page - 1) * limit)
-          .limit(limit);
+          .limit(limit)
+          .populate("subjectId"); // Optional: populate the subject reference
     
-        console.log("Fetched diagrams:", diagrams);
+        console.log("Fetched diagrams:", diagrams.length);
     
         return {
           diagrams,
@@ -34,11 +37,13 @@ const resolvers = {
     // ✅ Fetch a single diagram by ID
     getDiagramById: async (_, { id }) => {
       try {
-        return await Diagram.findById(id).populate("diagrams");
+        return await Diagram.findById(id).populate("subjectId");
       } catch (error) {
+        console.error("❌ Error in getDiagramById resolver:", error.message);
         throw new Error("Error fetching diagram");
       }
     },
+    
     // fetch all images with subject type
     getAllDiagramsBySubjectType: async (_, { subjectId, page = 1, limit = 10 }) => {
       try {
@@ -54,8 +59,7 @@ const resolvers = {
           .sort({ created_at: -1 }) // ✅ Fixed field name
           .skip((page - 1) * limit)
           .limit(limit)
-          .populate("subjectId")
-
+          .populate("subjectId");
 
         return {
           diagrams,
@@ -70,4 +74,5 @@ const resolvers = {
     },
   },
 };
+
 module.exports = resolvers;

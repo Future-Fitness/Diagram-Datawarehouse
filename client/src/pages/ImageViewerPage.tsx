@@ -6,10 +6,10 @@ import { request, gql } from "graphql-request";
 import ImageGrid from "../components/ImageGrid";
 import SearchBar from "../components/SearchBar";
 import { useDebounce } from "../hooks/useDebounce";
-const VITE_BASE_URL ='https://harshsaw.tech/datadiagram/api/'
+const VITE_BASE_URL = 'https://harshsaw.tech/datadiagram/api/'
 // const VITE_BASE_URL ='http://localhost:4001/api/'
-// const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
-const VITE_GRAPHQL_BASE_URL=  'http://localhost:4001/graphql'
+const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
+// const VITE_GRAPHQL_BASE_URL = 'http://localhost:4001/graphql'
 
 
 interface Diagram {
@@ -30,21 +30,18 @@ interface DiagramResponse {
 interface AdvancedFilters {
   textQuery: string;
   subjects: string[];
-  tags: string[];
+
   quality: string;
   minQualityScore: number;
-  dateRange: {
-    from: string;
-    to: string;
-  };
+
   format: string;
   sortBy: string;
 }
 
 const REST_ENDPOINT = `${VITE_BASE_URL}v1/SubjectTypes`;
- const SEARCH_ENDPOINT =  `${VITE_BASE_URL}v1/diagram`;
-const ADVANCED_SEARCH_ENDPOINT =  `${VITE_BASE_URL}v1/diagram/advanced`;
-const AUTOCOMPLETE_ENDPOINT =  `${VITE_BASE_URL}v1/diagram/autocomplete`;
+const SEARCH_ENDPOINT = `${VITE_BASE_URL}v1/diagram`;
+const ADVANCED_SEARCH_ENDPOINT = `${VITE_BASE_URL}v1/diagram/advanced`;
+const AUTOCOMPLETE_ENDPOINT = `${VITE_BASE_URL}v1/diagram/autocomplete`;
 
 const GRAPHQL_ENDPOINT = `${VITE_GRAPHQL_BASE_URL}`;
 
@@ -121,7 +118,7 @@ const fetchAutocompleteSuggestions = async (prefix: string): Promise<any[]> => {
 };
 
 export default function DiagramSearchPage() {
-      //@ts-ignore
+  //@ts-ignore
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
@@ -135,10 +132,10 @@ export default function DiagramSearchPage() {
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
     textQuery: "",
     subjects: [],
-    tags: [],
+
     quality: "",
     minQualityScore: 0,
-    dateRange: { from: "", to: "" },
+
     format: "",
     sortBy: "searchScore"
   });
@@ -194,10 +191,10 @@ export default function DiagramSearchPage() {
         }
       } else {
         if (selectedSubject) {
-          return request(GRAPHQL_ENDPOINT, GET_ALL_DIAGRAMS_BY_SUBJECT, { 
-            page, 
-            limit, 
-            subjectId: selectedSubject 
+          return request(GRAPHQL_ENDPOINT, GET_ALL_DIAGRAMS_BY_SUBJECT, {
+            page,
+            limit,
+            subjectId: selectedSubject
           }).then((data: any) => data.getAllDiagramsBySubjectType);
         } else {
           return request(GRAPHQL_ENDPOINT, GET_ALL_DIAGRAMS_QUERY, { page, limit })
@@ -324,10 +321,10 @@ export default function DiagramSearchPage() {
     setAdvancedFilters({
       textQuery: "",
       subjects: [],
-      tags: [],
+
       quality: "",
       minQualityScore: 0,
-      dateRange: { from: "", to: "" },
+
       format: "",
       sortBy: "searchScore"
     });
@@ -349,7 +346,7 @@ export default function DiagramSearchPage() {
   }, [debouncedSearchTerm, isAdvancedSearch]);
 
   const displayData = isAdvancedSearch ? searchResults : imagesData;
-      //@ts-ignore
+  //@ts-ignore
   const isLoading = isAdvancedSearch ? advancedSearchMutation.isLoading : basicSearchLoading;
   const errorObj = (isAdvancedSearch ? advancedSearchMutation.error : basicSearchError) as Error | null;
 
@@ -360,13 +357,13 @@ export default function DiagramSearchPage() {
       </header>
 
       <div className="mb-6">
-  <button
-    onClick={() => navigate(-1)} // Navigate to the previous page
-    className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-md transition-colors shadow-lg"
-  >
-    Back
-  </button>
-</div>
+        <button
+          onClick={() => navigate(-1)} // Navigate to the previous page
+          className="bg-slate-700 hover:bg-slate-600 text-slate-300 px-4 py-2 rounded-md transition-colors shadow-lg"
+        >
+          Back
+        </button>
+      </div>
 
       {/* Main Search Bar */}
       <div className="mb-6">
@@ -374,7 +371,7 @@ export default function DiagramSearchPage() {
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           placeholder="Search by title, extracted text, notes, or tags..."
-              //@ts-ignore
+          //@ts-ignore
           getSuggestions={fetchAutocompleteSuggestions}
           darkMode={true}
         />
@@ -449,67 +446,10 @@ export default function DiagramSearchPage() {
             </div>
           </div>
 
-          {/* Date Range */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div className="flex flex-col">
-              <label className="mb-1 text-sm font-medium text-slate-300">Date From</label>
-              <input
-                type="date"
-                value={advancedFilters.dateRange.from}
-                onChange={(e) => handleAdvancedFilterChange("dateRange.from", e.target.value)}
-                className="border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="mb-1 text-sm font-medium text-slate-300">Date To</label>
-              <input
-                type="date"
-                value={advancedFilters.dateRange.to}
-                onChange={(e) => handleAdvancedFilterChange("dateRange.to", e.target.value)}
-                className="border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              />
-            </div>
-          </div>
 
-          {/* Tags */}
-          <div className="mb-4">
-            <label className="mb-1 text-sm font-medium text-slate-300">Tags</label>
-            <div className="flex items-center">
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleTagInputKeyDown}
-                placeholder="Add tags (press Enter)"
-                className="flex-grow border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              />
-              <button
-                onClick={() => {
-                  if (tagInput.trim()) {
-                    addTag(tagInput.trim());
-                    setTagInput("");
-                  }
-                }}
-                className="ml-2 bg-cyan-600 hover:bg-cyan-700 text-white p-2 rounded-md transition-colors"
-              >
-                Add
-              </button>
-            </div>
-            {advancedFilters.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {advancedFilters.tags.map((tag) => (
-                  <div key={tag} className="bg-slate-700 text-cyan-400 px-2 py-1 rounded-full text-sm flex items-center">
-                    <span>{tag}</span>
-                    <button onClick={() => removeTag(tag)} className="ml-1 text-slate-400 hover:text-white">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+    
+
+      
 
           <div className="mt-4 flex justify-between">
             <button
@@ -532,11 +472,10 @@ export default function DiagramSearchPage() {
       <div className="flex justify-center gap-4 mb-6 flex-wrap">
         <button
           onClick={() => handleSubjectClick(null)}
-          className={`px-4 py-2 text-white rounded-md shadow-lg transition-colors ${
-            (isAdvancedSearch ? advancedFilters.subjects.length === 0 : selectedSubject === null)
-              ? "bg-cyan-600 ring-2 ring-cyan-400"
-              : "bg-slate-700 hover:bg-slate-600"
-          }`}
+          className={`px-4 py-2 text-white rounded-md shadow-lg transition-colors ${(isAdvancedSearch ? advancedFilters.subjects.length === 0 : selectedSubject === null)
+            ? "bg-cyan-600 ring-2 ring-cyan-400"
+            : "bg-slate-700 hover:bg-slate-600"
+            }`}
         >
           All Diagrams
         </button>
@@ -547,13 +486,12 @@ export default function DiagramSearchPage() {
             <button
               key={subject._id}
               onClick={() => handleSubjectClick(subject._id)}
-              className={`px-4 py-2 text-white rounded-md shadow-lg transition-colors ${
-                isAdvancedSearch
-                  ? advancedFilters.subjects.includes(subject._id)
-                  : selectedSubject === subject._id
-                    ? "bg-cyan-600 ring-2 ring-cyan-400"
-                    : "bg-slate-700 hover:bg-slate-600"
-              }`}
+              className={`px-4 py-2 text-white rounded-md shadow-lg transition-colors ${isAdvancedSearch
+                ? advancedFilters.subjects.includes(subject._id)
+                : selectedSubject === subject._id
+                  ? "bg-cyan-600 ring-2 ring-cyan-400"
+                  : "bg-slate-700 hover:bg-slate-600"
+                }`}
             >
               {subject.name}
             </button>
@@ -570,7 +508,7 @@ export default function DiagramSearchPage() {
       {/* Image Grid */}
       <div className="bg-slate-800 rounded-lg p-4 shadow-xl border border-slate-700">
         <ImageGrid
-        //@ts-ignore
+          //@ts-ignore
           images={displayData?.diagrams || []}
           loading={isLoading}
           error={errorObj?.message}
@@ -604,9 +542,8 @@ export default function DiagramSearchPage() {
             <button
               onClick={() => handlePageChange(page - 1)}
               disabled={page === 1}
-              className={`px-4 py-2 rounded-md transition-colors ${
-                page === 1 ? "bg-slate-700 text-slate-500 cursor-not-allowed" : "bg-cyan-600 text-white hover:bg-cyan-700"
-              }`}
+              className={`px-4 py-2 rounded-md transition-colors ${page === 1 ? "bg-slate-700 text-slate-500 cursor-not-allowed" : "bg-cyan-600 text-white hover:bg-cyan-700"
+                }`}
             >
               Previous
             </button>
@@ -616,9 +553,8 @@ export default function DiagramSearchPage() {
             <button
               onClick={() => handlePageChange(page + 1)}
               disabled={page === displayData.totalPages}
-              className={`px-4 py-2 rounded-md transition-colors ${
-                page === displayData.totalPages ? "bg-slate-700 text-slate-500 cursor-not-allowed" : "bg-cyan-600 text-white hover:bg-cyan-700"
-              }`}
+              className={`px-4 py-2 rounded-md transition-colors ${page === displayData.totalPages ? "bg-slate-700 text-slate-500 cursor-not-allowed" : "bg-cyan-600 text-white hover:bg-cyan-700"
+                }`}
             >
               Next
             </button>
