@@ -6,6 +6,7 @@ import { request, gql } from "graphql-request";
 import ImageGrid from "../components/ImageGrid";
 import SearchBar from "../components/SearchBar";
 import { useDebounce } from "../hooks/useDebounce";
+import { VITE_BASE_URL, VITE_GRAPHQL_BASE_URL } from "../App";
 
 
 interface Diagram {
@@ -41,12 +42,12 @@ interface AdvancedFilters {
   sortBy: string;
 }
 
-const REST_ENDPOINT = `${import.meta.env.VITE_BASE_URL}v1/SubjectTypes`;
- const SEARCH_ENDPOINT =  `${import.meta.env.VITE_BASE_URL}v1/diagram`;
-const ADVANCED_SEARCH_ENDPOINT =  `${import.meta.env.VITE_BASE_URL}v1/diagram/advanced`;
-const AUTOCOMPLETE_ENDPOINT =  `${import.meta.env.VITE_BASE_URL}v1/diagram/autocomplete`;
+const REST_ENDPOINT = `${VITE_BASE_URL}v1/SubjectTypes`;
+ const SEARCH_ENDPOINT =  `${VITE_BASE_URL}v1/diagram`;
+const ADVANCED_SEARCH_ENDPOINT =  `${VITE_BASE_URL}v1/diagram/advanced`;
+const AUTOCOMPLETE_ENDPOINT =  `${VITE_BASE_URL}v1/diagram/autocomplete`;
 
-const GRAPHQL_ENDPOINT = `${import.meta.env.VITE_GRAPHQL_BASE_URL}`;
+const GRAPHQL_ENDPOINT = `${VITE_GRAPHQL_BASE_URL}`;
 
 // GraphQL Query to Fetch ALL Diagrams (No subject filter)
 const GET_ALL_DIAGRAMS_QUERY = gql`
