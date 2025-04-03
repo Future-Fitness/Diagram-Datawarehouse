@@ -8,8 +8,8 @@ import SearchBar from "../components/SearchBar";
 import { useDebounce } from "../hooks/useDebounce";
 const VITE_BASE_URL = 'https://harshsaw.tech/datadiagram/api/'
 // const VITE_BASE_URL ='http://localhost:4001/api/'
-const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
-// const VITE_GRAPHQL_BASE_URL = 'http://localhost:4001/graphql'
+// const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
+const VITE_GRAPHQL_BASE_URL = 'http://localhost:4001/graphql'
 
 
 interface Diagram {
@@ -38,6 +38,9 @@ interface AdvancedFilters {
   sortBy: string;
 }
 
+// Example React component using the color_analysis data
+
+
 const REST_ENDPOINT = `${VITE_BASE_URL}v1/SubjectTypes`;
 const SEARCH_ENDPOINT = `${VITE_BASE_URL}v1/diagram`;
 const ADVANCED_SEARCH_ENDPOINT = `${VITE_BASE_URL}v1/diagram/advanced`;
@@ -61,6 +64,8 @@ const GET_ALL_DIAGRAMS_QUERY = gql`
           resolution,
           file_size_mb
         }
+          
+        
         quality_scores {
         overall_quality
 
@@ -138,10 +143,10 @@ export default function DiagramSearchPage() {
 
     format: "",
     sortBy: "searchScore"
+
   });
 
-  // Tags input handling
-  const [tagInput, setTagInput] = useState<string>("");
+
 
   // Debounce search term to avoid too many API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -254,30 +259,7 @@ export default function DiagramSearchPage() {
     setPage(1);
   };
 
-  // Handle tag input
-  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && tagInput.trim()) {
-      e.preventDefault();
-      addTag(tagInput.trim());
-      setTagInput("");
-    }
-  };
 
-  const addTag = (tag: string) => {
-    if (!advancedFilters.tags.includes(tag)) {
-      setAdvancedFilters(prev => ({
-        ...prev,
-        tags: [...prev.tags, tag]
-      }));
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setAdvancedFilters(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
 
   // Update advanced filters
   const handleAdvancedFilterChange = (field: string, value: any) => {
@@ -447,9 +429,9 @@ export default function DiagramSearchPage() {
           </div>
 
 
-    
 
-      
+
+
 
           <div className="mt-4 flex justify-between">
             <button

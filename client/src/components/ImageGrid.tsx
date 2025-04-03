@@ -1,4 +1,5 @@
 import { FC, useState } from "react";
+import ImageDetailModal from "./ImageDetailModal";
 
 interface FileInfo {
   format: string;
@@ -158,7 +159,7 @@ const ImageGrid: FC<ImageGridProps> = ({ images, error, darkMode = false }) => {
       </div>
 
       {/* Image Modal */}
-      {modalOpen && selectedImage && (
+      {/* {modalOpen && selectedImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className={`absolute inset-0 ${themeClasses.modalOverlay}`} onClick={closeModal}></div>
           <div className={`relative max-w-4xl w-full mx-4 rounded-lg shadow-2xl overflow-auto max-h-screen ${themeClasses.modal}`}>
@@ -259,7 +260,14 @@ const ImageGrid: FC<ImageGridProps> = ({ images, error, darkMode = false }) => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
+
+<ImageDetailModal
+        image={selectedImage}
+        isOpen={modalOpen}
+        onClose={closeModal}
+        darkMode={darkMode}
+      />
     </>
   );
 };

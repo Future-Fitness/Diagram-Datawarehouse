@@ -11,7 +11,7 @@ const resolvers = {
         console.log("Fetching diagrams with page:", page, "and limit:", limit);
     
         const total = await Diagram.countDocuments(); // Use Diagram instead of DiagramType
-        console.log("Total diagrams:", total);
+
     
         const diagrams = await Diagram.find() // Use Diagram instead of DiagramType
           .sort({ created_at: -1 })
@@ -19,7 +19,7 @@ const resolvers = {
           .limit(limit)
           .populate("subjectId"); // Optional: populate the subject reference
     
-        console.log("Fetched diagrams:", diagrams.length);
+
     
         return {
           diagrams,
