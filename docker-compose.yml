@@ -1,5 +1,3 @@
-
-
 services:
   backend:
     container_name: diagram-backend
@@ -15,11 +13,14 @@ services:
       - ./backend/.env
     environment:
       - PORT=4000
-      - FLASK_API_URL=http://diagram-flask:5001 
+      - FLASK_API_URL=http://diagram-flask:5001
       - REDIS_URL=redis://diagram-redis:6379
+      - VIRTUAL_HOST=diagram.harshsaw.tech
+      - LETSENCRYPT_HOST=diagram.harshsaw.tech
+      - LETSENCRYPT_EMAIL=mister.harshkumar@gmail.com
     networks:
-      - app-network
-    
+      - proxy
+
   diagram-flask:
     container_name: diagram-flask
     build:
@@ -30,10 +31,9 @@ services:
     volumes:
       - ./image-analysis-service:/app
     networks:
-      - app-network
-
-  
+      - proxy
 
 networks:
-  app-network:
-    driver: bridge
+  proxy:
+    external: true
+    name: nginx-network
