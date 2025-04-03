@@ -362,13 +362,7 @@ export default function UploadForm() {
         )}
         
         {/* Responsive adjustment for mobile */}
-        <style jsx>{`
-          @media (max-width: 768px) {
-            .max-w-md {
-              max-width: 90%;
-            }
-          }
-        `}</style>
+      
       </motion.div>
     </div>
   );
