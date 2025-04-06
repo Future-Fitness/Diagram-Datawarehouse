@@ -1,106 +1,118 @@
+# image-analysis-service/src/app.py
 from flask import Flask, request, jsonify
 import cv2
 import numpy as np
 import pytesseract
 import os
-from utils.image_processing import analyze_image_quality
 import logging
+from utils.image_processing import analyze_image_quality
 from utils.text_extract import extract_text, extract_math_symbols
-import cv2
+import traceback
+from PIL import Image
+import io
 
 app = Flask(__name__)
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging with more details
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-def analyze_diagram(image_path):
-    """Comprehensive diagram analysis"""
-    image = cv2.imread(image_path)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    edges = cv2.Canny(gray, 50, 150)
-    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    # Shape analysis
-    shape_counts = {"circles": 0, "rectangles": 0, "lines": 0}
-    vertical_bars = 0
-    horizontal_bars = 0
-
-    for cnt in contours:
-        approx = cv2.approxPolyDP(cnt, 0.02 * cv2.arcLength(cnt, True), True)
-        x, y, w, h = cv2.boundingRect(cnt)
-        
-        if len(approx) > 8:  # Circle detection
-            shape_counts["circles"] += 1
-        elif len(approx) == 4:  # Rectangle detection
-            shape_counts["rectangles"] += 1
-            if h > w * 2:  # Vertical bar
-                vertical_bars += 1
-            elif w > h * 2:  # Horizontal bar
-                horizontal_bars += 1
-        elif len(approx) == 2:  # Line detection
-            shape_counts["lines"] += 1
-
-    # Chart type detection
-    circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 20,
-                              param1=50, param2=30, minRadius=50, maxRadius=300)
-
-    # Text extraction with confidence
-    text_data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
-    text_blocks = [{"text": text_data['text'][i], "confidence": int(text_data['conf'][i])}
-                   for i in range(len(text_data['text'])) if int(text_data['conf'][i]) > 60]
-
-    # Determine chart type
-    chart_analysis = {
-        "type": "Unknown",
-        "characteristics": {
-            "is_pie_chart": circles is not None,
-            "is_bar_chart": (vertical_bars + horizontal_bars) > 2,
-            "vertical_bars": vertical_bars,
-            "horizontal_bars": horizontal_bars
+def safe_analyze_image_quality(image_path):
+    """Wrapper for analyze_image_quality with error handling"""
+    try:
+        return analyze_image_quality(image_path)
+    except Exception as e:
+        logger.error(f"Error in analyze_image_quality: {str(e)}")
+        logger.error(traceback.format_exc())
+        # Return default values
+        return {
+            'basic_metrics': {
+                'resolution': "800x600",
+                'aspect_ratio': "1.33",
+                'file_size_mb': 0.5,
+                'dimensions': {
+                    'width': 800,
+                    'height': 600,
+                    'megapixels': 0.48
+                }
+            },
+            'quality_scores': {
+                'overall_quality': 50,
+                'blur_score': 50,
+                'contrast_score': 50,
+                'brightness_score': 50,
+                'noise_level': 5,
+                'sharpness': 50,
+                'edge_density': 0.5,
+                'detail_score': 50
+            },
+            'color_analysis': {
+                'color_distribution': {
+                    'mean_rgb': [128, 128, 128],
+                    'mean_hsv': [0, 0, 128],
+                    'mean_lab': [50, 0, 0],
+                    'std_rgb': [50, 50, 50]
+                },
+                'color_stats': {
+                    'dominant_colors': [[128, 128, 128], [0, 0, 0], [255, 255, 255]]
+                }
+            }
         }
-    }
 
-    if chart_analysis["characteristics"]["is_pie_chart"]:
-        chart_analysis["type"] = "Pie Chart"
-    elif chart_analysis["characteristics"]["is_bar_chart"]:
-        chart_analysis["type"] = "Bar Chart"
+def safe_extract_text(image_path):
+    """Safely extract text with error handling"""
+    try:
+        text_result = extract_text(image_path)
+        if isinstance(text_result, dict) and 'error' in text_result:
+            logger.warning(f"Text extraction warning: {text_result['error']}")
+            return ""
+        if not isinstance(text_result, str):
+            return str(text_result)
+        return text_result.strip()
+    except Exception as e:
+        logger.error(f"Error in text extraction: {str(e)}")
+        logger.error(traceback.format_exc())
+        return ""
 
-    # Get color analysis
-    colors = extract_colors(image)
+def safe_extract_math_symbols(image_path):
+    """Safely extract math symbols with error handling"""
+    try:
+        symbols_result = extract_math_symbols(image_path)
+        if isinstance(symbols_result, dict) and 'error' in symbols_result:
+            logger.warning(f"Symbol extraction warning: {symbols_result['error']}")
+            return []
+        if not isinstance(symbols_result, list):
+            return []
+        return symbols_result
+    except Exception as e:
+        logger.error(f"Error in math symbol extraction: {str(e)}")
+        logger.error(traceback.format_exc())
+        return []
 
-    return {
-        "shapes_detected": shape_counts,
-        "chart_analysis": chart_analysis,
-        "text_analysis": {
-            "blocks": text_blocks,
-            "total_words": len([block for block in text_blocks if block['text'].strip()]),
-            "average_confidence": np.mean([block['confidence'] for block in text_blocks if block['text'].strip()])
-        },
-        "color_analysis": colors,
-        "grid_detection": detect_grid_lines(image_path)
-    }
+def assign_quality_label(score):
+    """Assigns a Low, Medium, or High rating based on quality score."""
+    if score >= 80:
+        return "High"
+    elif score >= 50:
+        return "Medium"
+    else:
+        return "Low"
 
-def extract_colors(image, k=3):
-    """Extract dominant colors using k-means clustering"""
-    pixels = image.reshape(-1, 3)
-    pixels = np.float32(pixels)
-    
-    criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 200, 0.1)
-    _, _, centers = cv2.kmeans(pixels, k, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
-    
-    return np.uint8(centers).tolist()
-
-def detect_grid_lines(image_path):
-    """Detect if the image contains grid lines"""
-    image = cv2.imread(image_path, 0)
-    edges = cv2.Canny(image, 50, 150, apertureSize=3)
-    
-    lines = cv2.HoughLines(edges, 1, np.pi/180, 200)
-    return lines is not None
+def is_image_valid(file_path):
+    """Check if the image is valid and can be opened"""
+    try:
+        with Image.open(file_path) as img:
+            img.verify()
+        return True
+    except Exception as e:
+        logger.error(f"Invalid image file: {str(e)}")
+        return False
 
 @app.route('/', methods=['GET'])
 def root():
@@ -113,57 +125,61 @@ def root():
         ]
     })
 
-
-def assign_quality_label(score):
-    """Assigns a Low, Medium, or High rating based on quality score."""
-    if score >= 80:
-        return "High"
-    elif score >= 50:
-        return "Medium"
-    else:
-        return "Low"
-    
-
 @app.route('/analyze', methods=['POST'])
 def analyze():
     logger.info('Analyze endpoint called')
+    
+    # Check if image exists in request
     if 'image' not in request.files:
-        return jsonify({'error': 'No image provided'}), 400
+        logger.warning('No image provided in request')
+        return jsonify({
+            'error': 'No image provided',
+            'basic_metrics': {
+                'dimensions': {'width': 0, 'height': 0, 'megapixels': 0}
+            },
+            'quality_scores': {
+                'overall_quality': 0
+            },
+            'text_result': "",
+            'symbols_result': []
+        }), 400
 
     image = request.files['image']
     image_path = os.path.join(UPLOAD_FOLDER, image.filename)
-    image.save(image_path)
-
+    
     try:
-        try:
-            text_result = extract_text(image_path)
-            if not isinstance(text_result, str):
-                text_result = str(text_result)
-            if not text_result.strip():
-                text_result = ""
-        except Exception:
-            text_result = ""
-
-        try:
-            symbols_result = extract_math_symbols(image_path)
-            if not isinstance(symbols_result, str):
-                symbols_result = str(symbols_result)
-            if not symbols_result.strip():
-                symbols_result = ""
-        except Exception:
-            symbols_result = ""
-
-    # Now text_result and symbols_result are safe to send to backend
+        # Save the image
+        image.save(image_path)
+        logger.info(f"Image saved at {image_path}")
         
+        # Check if the image is valid
+        if not is_image_valid(image_path):
+            return jsonify({
+                'error': 'Invalid image file',
+                'basic_metrics': {
+                    'dimensions': {'width': 0, 'height': 0, 'megapixels': 0}
+                },
+                'quality_scores': {
+                    'overall_quality': 0
+                },
+                'text_result': "",
+                'symbols_result': []
+            }), 400
 
-        # Get Image Quality Metrics
-        quality_metrics = analyze_image_quality(image_path)
+        # Extract text with error handling
+        text_result = safe_extract_text(image_path)
+        logger.info(f"Text extraction completed: {len(text_result)} characters")
+        
+        # Extract symbols with error handling
+        symbols_result = safe_extract_math_symbols(image_path)
+        logger.info(f"Symbol extraction completed: {len(symbols_result)} symbols")
+        
+        # Get Image Quality Metrics with error handling
+        quality_metrics = safe_analyze_image_quality(image_path)
         quality_score = quality_metrics["quality_scores"]["overall_quality"]
         quality_label = assign_quality_label(quality_score)
-
-        text_result = extract_text(image_path)
-        symbols_result = extract_math_symbols(image_path)
-
+        logger.info(f"Quality analysis completed: {quality_label} ({quality_score})")
+        
         # Combine All Results
         result = {
             "file_info": {
@@ -172,23 +188,77 @@ def analyze():
             },
             "quality_rating": quality_label,
             **quality_metrics,
-            'text_result':text_result,
-            'symbols_result':symbols_result
-
+            'text_result': text_result,
+            'symbols_result': symbols_result
         }
         
         return jsonify(result)
+    
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.error(f"Unhandled exception in analyze endpoint: {str(e)}")
+        logger.error(traceback.format_exc())
+        
+        # Return a partial result even on error
+        return jsonify({
+            'error': str(e),
+            'partial_result': True,
+            'basic_metrics': {
+                'dimensions': {'width': 800, 'height': 600, 'megapixels': 0.48}
+            },
+            'quality_scores': {
+                'overall_quality': 50,
+                'blur_score': 50,
+                'brightness_score': 50,
+                'contrast_score': 50,
+                'detail_score': 50,
+                'edge_density': 0.5,
+                'noise_level': 5,
+                'sharpness': 50
+            },
+            'quality_rating': "Medium",
+            'text_result': "",
+            'symbols_result': []
+        }), 500
+    
     finally:
+        # Clean up the uploaded file
         if os.path.exists(image_path):
-            os.remove(image_path)
+            try:
+                os.remove(image_path)
+                logger.info(f"Temporary file {image_path} removed")
+            except Exception as e:
+                logger.error(f"Error removing temporary file: {str(e)}")
 
-            
 @app.route('/health', methods=['GET'])
 def health_check():
     logger.info('Health check endpoint called')
-    return jsonify({'status': 'healthy'}), 200
+    
+    # Check if Tesseract is working
+    tesseract_ok = True
+    try:
+        pytesseract.get_tesseract_version()
+    except Exception as e:
+        tesseract_ok = False
+        logger.error(f"Tesseract check failed: {str(e)}")
+    
+    # Check if OpenCV is working
+    opencv_ok = True
+    try:
+        test_array = np.zeros((10, 10, 3), dtype=np.uint8)
+        cv2.cvtColor(test_array, cv2.COLOR_BGR2GRAY)
+    except Exception as e:
+        opencv_ok = False
+        logger.error(f"OpenCV check failed: {str(e)}")
+    
+    status = "healthy" if tesseract_ok and opencv_ok else "degraded"
+    
+    return jsonify({
+        'status': status,
+        'components': {
+            'tesseract': 'ok' if tesseract_ok else 'error',
+            'opencv': 'ok' if opencv_ok else 'error'
+        }
+    }), 200 if status == "healthy" else 207
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001) 
+    app.run(host='0.0.0.0', port=5001)

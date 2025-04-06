@@ -1,0 +1,43 @@
+graph TD
+    A[Client] -->|1. Upload Image| B[Backend API]
+    
+    B -->|2. Store Image| C[AWS S3]
+    C -->|3. Return URL| B
+    
+    B -->|4. Create Pending Record| D[MongoDB]
+    D -->|5. Return Record ID| B
+    
+    B -->|6. Send to Queue| E[Message Queue]
+    E -->|7. Acknowledge| B
+    
+    B -->|8. Return Initial Response| A
+    
+    E -->|9. Consume Message| F[Worker Service]
+    F -->|10. Fetch Image| C
+    F -->|11. Send for Analysis| G[Image Analysis Service]
+    G -->|12. Return Analysis| F
+    
+    F -->|13. Update Record| D
+    
+    H[Notification Service] -->|14. Optional: Notify Client| A
+    F -.->|Trigger| H
+    
+    subgraph "Frontend"
+        A
+    end
+    
+    subgraph "Backend Services"
+        B
+        H
+    end
+    
+    subgraph "Storage"
+        C
+        D
+    end
+    
+    subgraph "Processing"
+        E
+        F
+        G
+    end

@@ -93,6 +93,12 @@ const processImage = async (file, imageMetadata) => {
     throw new Error("❌ No image file provided");
   }
 
+  console.log("File details:", {
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    size: file.size,
+  });
+
   try {
     // 1️⃣ **Analyze Image Using Flask API**
     const formData = new FormData();
@@ -107,7 +113,7 @@ const processImage = async (file, imageMetadata) => {
       headers: formData.getHeaders(),
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
-      timeout: 30000,
+      timeout: 300000,
     });
     console.log("🚀 ~ processImage ~ flaskResponse.data:", flaskResponse.data)
 
