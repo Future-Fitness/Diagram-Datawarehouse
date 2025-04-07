@@ -1,39 +1,125 @@
+
 services:
   backend:
     container_name: diagram-backend
     build:
       context: ./backend
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "4000:4000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    env_file:
-      - ./backend/.env
     environment:
+      - NODE_ENV=production
       - PORT=4000
-      - FLASK_API_URL=http://diagram-flask:5001
-      - REDIS_URL=redis://diagram-redis:6379
-      - VIRTUAL_HOST=diagram.harshsaw.tech
-      - LETSENCRYPT_HOST=diagram.harshsaw.tech
-      - LETSENCRYPT_EMAIL=mister.harshkumar@gmail.com
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - FLASK_API_URL=http://image-analysis:5001
+    depends_on:
+      - redis
+      - image-analysis
     networks:
+      - diagram-network
       - proxy
+    volumes:
+      - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
-  diagram-flask:
+  worker:
+    container_name: diagram-worker
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - FLASK_API_URL=http://image-analysis:5001
+    depends_on:
+      - redis
+      - image-analysis
+    networks:
+      - diagram-network
+    volumes:
+      - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  redis:
+    container_name: diagram-redis
+    image: redis:6-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    networks:
+      - diagram-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  image-analysis:
     container_name: diagram-flask
     build:
       context: ./image-analysis-service
       dockerfile: Dockerfile
-    ports:
-      - "5001:5001"
-    volumes:
-      - ./image-analysis-service:/app
+    restart: unless-stopped
     networks:
+      - diagram-network
+    volumes:
+      - ./image-analysis-service/uploads:/app/uploads
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  redis-commander:
+    container_name: diagram-redis-commander
+    image: rediscommander/redis-commander:latest
+    restart: unless-stopped
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - diagram-network
       - proxy
+    depends_on:
+      - redis
+
+volumes:
+  redis-data:
 
 networks:
+  diagram-network:
+    driver: bridge
   proxy:
     external: true
     name: nginx-network

@@ -1,3 +1,4 @@
+// backend/src/routes/v1/index.js
 const express = require("express");
 const router = express.Router();
 const multer = require("multer");
@@ -11,17 +12,25 @@ const { DiagramController } = require("../../controllers");
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024, // 5MB limit
+    fileSize: 50 * 1024 * 1024, // 50MB limit
   },
 });
 
+// Image upload and processing
 router.post(
   "/analyze",
   upload.single("image"),
   ImageController.analyzeAndUploadImage
 );
-router.get("/getAllImages", ImageController.getAllImages);
 
+// Get processing status for a specific diagram
+router.get("/diagram/:id/status", ImageController.getDiagramStatus);
+
+// Get queue statistics (admin endpoint)
+router.get("/queue/stats", ImageController.getQueueStats);
+
+// Existing routes
+router.get("/getAllImages", ImageController.getAllImages);
 router.post("/createDiagramType", DiagramController.createDiagramType);
 router.post("/createSubjectType", CreateCategory.createSubjectType);
 router.get("/diagramTypes", DiagramController.getAllDiagramsType);
@@ -39,7 +48,7 @@ router.get('/diagram/autocomplete', diagramSearchController.getAutocompleteSugge
 // Find similar
 router.get('/diagram/:diagramId/similar', diagramSearchController.findSimilarDiagrams);
 
-
-router.get("/getAllDiagrams",ImageController.getDiagrams );
+// Get all diagrams with filtering
+router.get("/getAllDiagrams", ImageController.getDiagrams);
 
 module.exports = router;

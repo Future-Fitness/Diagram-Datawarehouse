@@ -9,7 +9,7 @@ const typeDefs = require("./graphql/schema");
 const resolvers = require("./graphql/resolvers");
 
 const app = express();
-const PORT = process.env.PORT || 4001;
+const PORT = process.env.PORT || 4000;
 app.use(cors());
 
 app.use(express.json());
@@ -40,7 +40,7 @@ if (process.env.NODE_ENV !== "integration" && require.main === module) {
       });
     
       await server.start();
-      server.applyMiddleware({ app, cors: { origin: "*", credentials: true } });
+      server.applyMiddleware({ app, path: "/api/graphql", cors: { origin: "*", credentials: true } });
     
       app.listen(PORT, () => {
         console.log(`🚀 Server running at http://localhost:${PORT}${server.graphqlPath}`);

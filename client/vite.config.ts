@@ -4,5 +4,5 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(),tailwindcss(),],
-  base: '/Diagram-Datawarehouse/', // this matches your GitHub Pages path
+  base: './',
 })

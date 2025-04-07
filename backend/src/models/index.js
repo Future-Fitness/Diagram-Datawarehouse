@@ -9,13 +9,10 @@ const env = process.env.NODE_ENV || 'development';
 const db = {};
 
 const connectDB = async () => {
-  console.log(`Environment: ${env}`);
+
   console.log('Attempting to connect to MongoDB...');
   try {
-    await mongoose.connect(process.env.MONGODB_URL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(process.env.MONGODB_URL);
     console.log('MongoDB connected successfully');
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
