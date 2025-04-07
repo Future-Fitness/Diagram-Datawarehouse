@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 
-const VITE_BASE_URL = 'https://harshsaw.tech/datadiagram/api';
+// const VITE_BASE_URL = 'https://harshsaw.tech/datadiagram/api';
+const VITE_BASE_URL = 'http://localhost:4001/api';
 
 // Updated interfaces to match the new API response structure
 interface DiagramType {
