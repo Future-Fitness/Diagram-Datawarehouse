@@ -244,15 +244,22 @@ async function processMessage(message) {
             
             // Extract file info
             file_info: {
-                file_size_mb: diagram.file_info.file_size_mb,
-                format: diagram.file_info.format,
-                resolution: safeGet(analysisData, 'basic_metrics.dimensions', { width: 800, height: 600 }),
-                dimensions: {
-                    width: safeGet(analysisData, 'basic_metrics.dimensions.width', 800),
-                    height: safeGet(analysisData, 'basic_metrics.dimensions.height', 600),
-                    megapixels: safeGet(analysisData, 'basic_metrics.dimensions.megapixels', 0.48)
-                }
-            },
+              file_size_mb: diagram.file_info.file_size_mb,
+              format: diagram.file_info.format,
+              // Ensure resolution is a string
+              resolution: (() => {
+                  // Get dimensions safely
+                  const width = safeGet(analysisData, 'basic_metrics.dimensions.width', 800);
+                  const height = safeGet(analysisData, 'basic_metrics.dimensions.height', 600);
+                  // Format as a string
+                  return `${width}x${height}`;
+              })(),
+              dimensions: {
+                  width: safeGet(analysisData, 'basic_metrics.dimensions.width', 800),
+                  height: safeGet(analysisData, 'basic_metrics.dimensions.height', 600),
+                  megapixels: safeGet(analysisData, 'basic_metrics.dimensions.megapixels', 0.48)
+              }
+          },
             
             // Extract text and symbols
             extracted_text: safeGet(analysisData, 'text_result', ''),
