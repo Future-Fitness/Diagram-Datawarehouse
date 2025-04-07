@@ -75,7 +75,7 @@ export default function Home() {
           </div>
         </div>
         <section className="flex justify-center items-center">
-          <img src="/Diagram-Datawarehouse/image.png" alt="Diagram" className="rounded-lg h-200 w-full shadow-xl mb-8" />
+          <img src="/image.png" alt="Diagram" className="rounded-lg h-200 w-full shadow-xl mb-8" />
         </section>
       </section>
 
@@ -117,69 +117,66 @@ export default function Home() {
 
       {/* API and Documentation Section */}
       <section className="py-16 px-6 max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-2 text-cyan-400">API & Documentation</h2>
-        <p className="text-center text-slate-400 mb-12 max-w-2xl mx-auto">
-          Comprehensive references and documentation for developers
-        </p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-slate-800 p-6 rounded-xl shadow-xl border border-slate-700">
-            <h3 className="font-semibold text-xl text-white mb-4 flex items-center">
-              <FaServer className="mr-2 text-cyan-400" /> REST API
-            </h3>
-            <p className="text-slate-400 mb-4">
-              Our REST API provides endpoints for diagram upload, retrieval, and search operations.
-            </p>
-            <div className="bg-slate-900 p-4 rounded-lg text-slate-300 font-mono text-sm mb-4">
-              <div className="mb-2">GET https://harshsaw.tech/datadiagram/api/v1/getAllDiagrams</div>
-              <div className="mb-2">GET https://harshsaw.tech/datadiagram/api/v1/getAllDiagrams?text={}</div>
+  <h2 className="text-3xl font-bold text-center mb-2 text-cyan-400">API & Documentation</h2>
+  <p className="text-center text-slate-400 mb-12 max-w-2xl mx-auto">
+    Comprehensive references and documentation for developers
+  </p>
 
-            </div>
-            <a 
-              href="https://harshsaw.tech/datadiagram/api/v1/getAllDiagrams" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-block text-cyan-400 hover:text-cyan-300 font-medium"
-            >
-              View API Documentation →
-            </a>
-          </div>
-          
-          <div className="bg-slate-800 p-6 rounded-xl shadow-xl border border-slate-700">
-            <h3 className="font-semibold text-xl text-white mb-4 flex items-center">
-              <FaCode className="mr-2 text-cyan-400" /> GraphQL API
-            </h3>
-            <p className="text-slate-400 mb-4">
-              Our GraphQL API provides flexible querying capabilities for diagram metadata.
-            </p>
-            <div className="bg-slate-900 p-4 rounded-lg text-slate-300 font-mono text-sm mb-4">
-              <div className="mb-2">query getAllDiagrams(page: 1, limit: 10) &#123;</div>
-              <div className="mb-2">&nbsp;&nbsp;diagrams &#123;</div>
-              <div>&nbsp;&nbsp;&nbsp;&nbsp;title, image_url, category &#123; name &#125;</div>
-              <div className="mb-2">&nbsp;&nbsp;&#125;</div>
-              <div>&#125;</div>
-            </div>
-            <a 
-              href="https://harshsaw.tech/datadiagram/graphql" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-block text-cyan-400 hover:text-cyan-300 font-medium"
-            >
-              Explore GraphQL Schema →
-            </a>
-          </div>
-        </div>
-      </section>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    {/* REST API Section */}
+    <div className="bg-slate-800 p-6 rounded-xl shadow-xl border border-slate-700 hover:border-cyan-500 transition-colors">
+      <h3 className="font-semibold text-xl text-white mb-4 flex items-center">
+        <FaServer className="mr-2 text-cyan-400" /> REST API
+      </h3>
+      <p className="text-slate-400 mb-4">
+        Our REST API provides endpoints for diagram upload, retrieval, and search operations.
+      </p>
+      <div className="bg-slate-900 p-4 rounded-lg text-slate-300 font-mono text-sm mb-4">
+        <div className="mb-2">GET /api/v1/getAllDiagrams</div>
+        <div className="mb-2">GET /api/v1/getAllDiagrams?text=&#123;&#125;</div>
+      </div>
+      <div
+        onClick={() => navigate('/documentation')}
+        className="inline-block text-cyan-400 hover:text-cyan-300 font-medium cursor-pointer"
+      >
+        API Documentation →
+      </div>
+    </div>
+
+    {/* GraphQL API Section */}
+    <div className="bg-slate-800 p-6 rounded-xl shadow-xl border border-slate-700 hover:border-cyan-500 transition-colors">
+      <h3 className="font-semibold text-xl text-white mb-4 flex items-center">
+        <FaCode className="mr-2 text-cyan-400" /> GraphQL API
+      </h3>
+      <p className="text-slate-400 mb-4">
+        Our GraphQL API provides flexible querying capabilities for diagram metadata.
+      </p>
+      <div className="bg-slate-900 p-4 rounded-lg text-slate-300 font-mono text-sm mb-4">
+        <div className="mb-2">query getAllDiagrams(page: 1, limit: 10) &#123;</div>
+        <div className="mb-2">&nbsp;&nbsp;diagrams &#123;</div>
+        <div>&nbsp;&nbsp;&nbsp;&nbsp;title, image_url, category &#123; name &#125;</div>
+        <div className="mb-2">&nbsp;&nbsp;&#125;</div>
+        <div>&#125;</div>
+      </div>
+      <div
+        onClick={() => navigate('/documentation')}
+        className="inline-block text-cyan-400 hover:text-cyan-300 font-medium cursor-pointer"
+      >
+        Explore GraphQL Schema →
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* Project Links Section */}
       <section className="bg-gradient-to-b from-slate-800 to-slate-900 py-16 px-6">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto ">
           <h2 className="text-3xl font-bold text-center mb-2 text-cyan-400">Project Resources</h2>
           <p className="text-center text-slate-400 mb-12 max-w-2xl mx-auto">
             Access our codebase, documentation, and other resources
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="flex justify-center items-center gap-8">
             <a 
               href="https://github.com/Future-Fitness/Diagram-Datawarehouse" 
               target="_blank" 
@@ -198,41 +195,23 @@ export default function Home() {
               </span>
             </a>
             
-            <a 
-              href="https://docs.diagram-warehouse.edu" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-slate-800 p-6 rounded-xl shadow-xl border border-slate-700 hover:border-cyan-500 transition-colors group"
-            >
-              <div className="flex items-center mb-4" onClick={() => navigate('/documentation')}>
-                <FaBook className="text-3xl mr-3 text-white" />
-                <h3 className="font-semibold text-xl text-white">Documentation</h3>
-              </div>
-              <p className="text-slate-400 mb-3">
-                Comprehensive guides, tutorials, and reference documentation for the system.
-              </p>
-              <span className="text-cyan-400 group-hover:text-cyan-300 transition-colors">
-                Read Documentation →
-              </span>
-            </a>
+            <div
+  onClick={() => navigate('/documentation')}
+  className="bg-slate-800 p-6 rounded-xl shadow-xl border border-slate-700 hover:border-cyan-500 transition-colors group cursor-pointer"
+>
+  <div className="flex items-center mb-4">
+    <FaBook className="text-3xl mr-3 text-white" />
+    <h3 className="font-semibold text-xl text-white">Documentation</h3>
+  </div>
+  <p className="text-slate-400 mb-3">
+    Comprehensive guides, tutorials, and reference documentation for the system.
+  </p>
+  <span className="text-cyan-400 group-hover:text-cyan-300 transition-colors">
+    Read Documentation →
+  </span>
+</div>   
             
-            <a 
-              href="https://demo.diagram-warehouse.edu" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-slate-800 p-6 rounded-xl shadow-xl border border-slate-700 hover:border-cyan-500 transition-colors group"
-            >
-              <div className="flex items-center mb-4">
-                <FaDatabase className="text-3xl mr-3 text-white" />
-                <h3 className="font-semibold text-xl text-white">Live Demo</h3>
-              </div>
-              <p className="text-slate-400 mb-3">
-                Try our live demo with sample diagrams and explore the search functionality.
-              </p>
-              <span className="text-cyan-400 group-hover:text-cyan-300 transition-colors">
-                Try Demo →
-              </span>
-            </a>
+            
           </div>
         </div>
       </section>

@@ -223,7 +223,21 @@ export default function DiagramSearchPage() {
             _id: item.subjectId?._id || "",
             name: item.subjectId?.name || ""
           },
-          created_at: item.upload_date || item.created_at
+          created_at: item.upload_date || item.created_at,
+          
+          // Include these additional fields for complete data in advanced search
+          quality_rating: item.quality_rating,
+          quality_scores: item.quality_scores,
+          extracted_text: item.extracted_text,
+          file_info: item.file_info,
+          tags: item.tags,
+          notes: item.notes,
+          author: item.author,
+          sourceType: item.sourceType,
+          filename: item.filename,
+          category: item.category,
+          sub_category: item.sub_category,
+          processing_status: item.processing_status
         })),
         total: response.data.pagination.total,
         totalPages: Math.ceil(response.data.pagination.total / limit),
@@ -287,6 +301,7 @@ export default function DiagramSearchPage() {
       page: pageNumber,
       limit: limit,
       textQuery: advancedFilters.textQuery || searchTerm
+
     };
     advancedSearchMutation.mutate(searchParams);
   };
@@ -384,34 +399,8 @@ export default function DiagramSearchPage() {
                 <option value="Low">Low</option>
               </select>
             </div>
-            <div className="flex flex-col">
-              <label className="mb-1 text-sm font-medium text-slate-300">Min Quality Score</label>
-              <input
-                type="number"
-                min="0"
-                max="10"
-                step="0.1"
-                value={advancedFilters.minQualityScore}
-                onChange={(e) =>
-                  handleAdvancedFilterChange("minQualityScore", parseFloat(e.target.value) || 0)
-                }
-                className="border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="mb-1 text-sm font-medium text-slate-300">Format</label>
-              <select
-                value={advancedFilters.format}
-                onChange={(e) => handleAdvancedFilterChange("format", e.target.value)}
-                className="border border-slate-600 bg-slate-700 text-slate-200 rounded-md p-2 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-              >
-                <option value="">Any Format</option>
-                <option value="PNG">PNG</option>
-                <option value="JPG">JPG</option>
-                <option value="SVG">SVG</option>
-                <option value="PDF">PDF</option>
-              </select>
-            </div>
+         
+            
             <div className="flex flex-col">
               <label className="mb-1 text-sm font-medium text-slate-300">Sort By</label>
               <select
