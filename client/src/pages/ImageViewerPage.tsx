@@ -363,14 +363,14 @@ export default function DiagramSearchPage() {
 
       {/* Main Search Bar */}
       <div className="mb-6">
-        <SearchBar
+        {/* <SearchBar
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
-          placeholder="Search by title, extracted text, notes, or tags..."
+          placeholder="Search by, extracted text ...."
           //@ts-ignore
           getSuggestions={fetchAutocompleteSuggestions}
           darkMode={true}
-        />
+        /> */}
         <div className="flex justify-end mt-2">
           <button
             onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}

@@ -146,7 +146,7 @@ def safe_extract_math_symbols(image_path):
     try:
         symbols_result = extract_math_symbols(image_path)
         if isinstance(symbols_result, dict) and 'error' in symbols_result:
-            logger.warning(f"Symbol extraction warning: {symbols_result['error']}")
+            # logger.warning(f"Symbol extraction warning: {symbols_result['error']}")
             return []
         if not isinstance(symbols_result, list):
             return []

@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import {useNavigate} from 'react-router-dom';
 const ApiDocumentation = () => {
   // State for active tabs
   const [activeTab, setActiveTab] = useState('overview');
@@ -30,7 +29,7 @@ const ApiDocumentation = () => {
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
 
-<div
+      <div
         onClick={() => navigate(-1)} // Navigate back to the previous page
         className="bg-blue-500 absolute top-4 left-4 p-2 text-white font-bold rounded cursor-pointer hover:bg-blue-600"
       >
@@ -88,12 +87,6 @@ const ApiDocumentation = () => {
           <h3 className="text-lg font-medium mt-6">Base URL</h3>
           <div className="bg-gray-100 p-2 rounded block">
             <code>{ 'http://localhost:4000/api'}</code>
-          </div>
-          
-          <h3 className="text-lg font-medium mt-6">Authentication</h3>
-          <p>All API requests require authentication using API keys. Include the API key in the header as follows:</p>
-          <div className="bg-gray-100 p-2 rounded block mt-2">
-            <code>Authorization: Bearer YOUR_API_KEY</code>
           </div>
           
           <h3 className="text-lg font-medium mt-6">API Categories</h3>
@@ -746,8 +739,7 @@ const ApiDocumentation = () => {
 fetch('/api/graphql', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer YOUR_API_KEY'
+    'Content-Type': 'application/json'
   },
   body: JSON.stringify({
     query: \`
@@ -825,9 +817,6 @@ async function uploadImage(file, metadata) {
   try {
     const response = await fetch('http://localhost:4000/api/v1/analyze', {
       method: 'POST',
-      headers: {
-        'Authorization': 'Bearer YOUR_API_KEY'
-      },
       body: formData
     });
     
@@ -850,11 +839,7 @@ async function searchDiagrams(query, filters = {}) {
   });
   
   try {
-    const response = await fetch(\`http://localhost:4000/api/v1/diagram?\${params}\`, {
-      headers: {
-        'Authorization': 'Bearer YOUR_API_KEY'
-      }
-    });
+    const response = await fetch(\`http://localhost:4000/api/v1/diagram?\${params}\`);
     
     const data = await response.json();
     return data;
@@ -893,12 +878,8 @@ def upload_image(file_path, metadata):
     if 'tags' in metadata:
         data['tags'] = metadata['tags']
     
-    headers = {
-        'Authorization': 'Bearer YOUR_API_KEY'
-    }
-    
     try:
-        response = requests.post(url, files=files, data=data, headers=headers)
+        response = requests.post(url, files=files, data=data)
         return response.json()
     except Exception as e:
         print(f"Error uploading image: {e}")
@@ -909,9 +890,6 @@ def upload_image(file_path, metadata):
             <pre className="bg-gray-100 p-3 rounded overflow-auto">
 {`# Searching for diagrams
 import requests
-import { useNavigate } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
 
 def search_diagrams(query, filters=None):
     url = 'http://localhost:4000/api/v1/diagram'
@@ -920,12 +898,8 @@ def search_diagrams(query, filters=None):
     if filters:
         params.update(filters)
     
-    headers = {
-        'Authorization': 'Bearer YOUR_API_KEY'
-    }
-    
     try:
-        response = requests.get(url, params=params, headers=headers)
+        response = requests.get(url, params=params)
         return response.json()
     except Exception as e:
         print(f"Error searching diagrams: {e}")
@@ -942,7 +916,6 @@ def search_diagrams(query, filters=None):
 {`# Upload and analyze an image
 curl -X POST \\
   http://localhost:4000/api/v1/analyze \\
-  -H 'Authorization: Bearer YOUR_API_KEY' \\
   -F 'image=@/path/to/diagram.jpg' \\
   -F 'title=Circuit Diagram' \\
   -F 'subjectId=61934ec8b8e9a842e89f3c25' \\
@@ -955,8 +928,7 @@ curl -X POST \\
             <pre className="bg-gray-100 p-3 rounded overflow-auto">
 {`# Search for diagrams
 curl -X GET \\
-  'http://localhost:4000/api/v1/diagram?query=circuit&limit=10&page=1' \\
-  -H 'Authorization: Bearer YOUR_API_KEY'`}
+  'http://localhost:4000/api/v1/diagram?query=circuit&limit=10&page=1'`}
             </pre>
           </div>
         )}
