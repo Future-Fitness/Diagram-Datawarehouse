@@ -6,10 +6,6 @@ import { request, gql } from "graphql-request";
 import ImageGrid from "../components/ImageGrid";
 import SearchBar from "../components/SearchBar";
 import { useDebounce } from "../hooks/useDebounce";
-const VITE_BASE_URL = 'https://harshsaw.tech/datadiagram/api/'
-// const VITE_BASE_URL ='http://localhost:4001/api/'
-const VITE_GRAPHQL_BASE_URL=  'https://harshsaw.tech/datadiagram/graphql'
-// const VITE_GRAPHQL_BASE_URL = 'http://localhost:4001/graphql'
 
 
 interface Diagram {
@@ -38,7 +34,10 @@ interface AdvancedFilters {
   sortBy: string;
 }
 
-// Example React component using the color_analysis data
+const VITE_BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:4000/api/';
+
+const VITE_GRAPHQL_BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:4000/api/graphql/';
+
 
 
 const REST_ENDPOINT = `${VITE_BASE_URL}v1/SubjectTypes`;

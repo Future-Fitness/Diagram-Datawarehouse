@@ -1,5 +1,5 @@
-services:
 
+services:
   backend:
     container_name: diagram-backend
     build:
@@ -7,10 +7,11 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "4000:4001"  # You can remove this if NGINX is proxying
+      - "4000:4000"
     environment:
       - NODE_ENV=production
-      - PORT=4001
+      - PORT=4000
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
       - FLASK_API_URL=http://image-analysis:5001
     depends_on:
@@ -18,9 +19,20 @@ services:
       - image-analysis
     networks:
       - diagram-network
-      - nginx-network  # Connects backend to centralized nginx
+      - proxy
     volumes:
       - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
 
   worker:
     container_name: diagram-worker
@@ -40,18 +52,31 @@ services:
       - diagram-network
     volumes:
       - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
 
   redis:
     container_name: diagram-redis
     image: redis:6-alpine
     restart: unless-stopped
-    ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis-data:/data
     networks:
       - diagram-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   image-analysis:
     container_name: diagram-flask
@@ -63,6 +88,31 @@ services:
       - diagram-network
     volumes:
       - ./image-analysis-service/uploads:/app/uploads
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  redis-commander:
+    container_name: diagram-redis-commander
+    image: rediscommander/redis-commander:latest
+    restart: unless-stopped
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - diagram-network
+      - proxy
+    depends_on:
+      - redis
 
 volumes:
   redis-data:
@@ -70,8 +120,6 @@ volumes:
 networks:
   diagram-network:
     driver: bridge
-  nginx-network:
-    external: true  
   proxy:
     external: true
     name: nginx-network
