@@ -9,6 +9,13 @@ const typeDefs = gql`
     createdAt: String!
   }
 
+  type DiagramPage {
+  diagrams: [Diagram!]!
+  total: Int!
+  totalPages: Int!
+  currentPage: Int!
+}
+
   type Diagram {
     _id: ID!
     image_url: String!
@@ -114,6 +121,12 @@ const typeDefs = gql`
     getAllDiagrams(page: Int, limit: Int): DiagramPagination
     getDiagramById(id: ID): Diagram
     getAllDiagramsBySubjectType(subjectId: ID, page: Int, limit: Int): DiagramPagination 
+    searchDiagrams(
+    query: String
+    subjectId: ID
+    minQualityScore: Int
+    page: Int
+    limit: Int  ): DiagramPage!
   }
 
 
