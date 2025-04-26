@@ -11,7 +11,7 @@ async function analyzeImage(apiUrl, filePath, filename, format) {
 
   const response = await axios.post(`${apiUrl}/analyze`, form, {
     headers: form.getHeaders(),
-    timeout: 90000,
+    timeout: 900000,
     maxContentLength: Infinity,
     maxBodyLength: Infinity,
   });

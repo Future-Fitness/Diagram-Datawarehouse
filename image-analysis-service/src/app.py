@@ -7,6 +7,7 @@ import os
 import logging
 from utils.image_processing import analyze_image_quality
 from utils.text_extract import extract_text, extract_math_symbols
+from utils.diagram_features import extract_diagram_features
 import traceback
 from PIL import Image
 import io
@@ -287,6 +288,19 @@ def analyze():
                     'text_result': "",
                     'symbols_result': []
                 }), 400
+                
+                
+        try:
+            diagram_data = extract_diagram_features(image_path)
+    
+
+            diagram_features = diagram_data.to_dict()
+            print(diagram_data, "----",diagram_features)
+            logger.info(f"image 0- {diagram_data}, {diagram_features}")
+        except:
+            logger.error(f"Text diagram: {str(text_error)}")
+            logger.error(traceback.format_exc())
+                
 
         # Extract text with error handling - already handles SVG files specially
         try:
