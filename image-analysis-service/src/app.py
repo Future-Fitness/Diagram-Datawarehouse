@@ -2,16 +2,20 @@
 from flask import Flask, request, jsonify
 import cv2
 import numpy as np
-import pytesseract
+# import pytesseract
 import os
 import logging
 from utils.image_processing import analyze_image_quality
 from utils.text_extract import extract_text, extract_math_symbols
-from utils.diagram_features import extract_diagram_features
+from utils.diagram_features import extract_diagram_features,DiagramType
 import traceback
 from PIL import Image
 import io
 import uuid
+
+
+import pytesseract
+import boto3
 
 app = Flask(__name__)
 
@@ -106,40 +110,6 @@ def safe_analyze_image_quality(image_path):
             }
         }
 
-def safe_extract_text(image_path):
-    """Safely extract text with error handling"""
-    # Special handling for SVG files
-    if image_path.lower().endswith('.svg'):
-        try:
-            # For SVG files, we can try to extract text directly from the XML
-            with open(image_path, 'r', encoding='utf-8') as f:
-                svg_content = f.read()
-            
-            # Extract text elements from SVG (a very basic approach)
-            import re
-            text_elements = re.findall(r'<text[^>]*>(.*?)</text>', svg_content, re.DOTALL)
-            
-            # Combine and clean text elements
-            extracted_text = ' '.join(text_elements)
-            extracted_text = re.sub(r'<[^>]+>', ' ', extracted_text)  # Remove any nested tags
-            extracted_text = re.sub(r'\s+', ' ', extracted_text).strip()  # Clean whitespace
-            
-            logger.info(f"Extracted {len(extracted_text)} characters from SVG text elements")
-            return extracted_text
-        except Exception as e:
-            logger.error(f"Error extracting text from SVG: {str(e)}")
-            logger.error(traceback.format_exc())
-            return ""
-    try:
-        text_result = extract_text(image_path)
-            # Make sure we're returning a string
-        if not isinstance(text_result, str):
-            return str(text_result)
-        return text_result.strip()
-    except Exception as e:
-        logger.error(f"Error in text extraction: {str(e)}")
-        logger.error(traceback.format_exc())
-        return ""
 
 
 def safe_extract_math_symbols(image_path):
@@ -190,6 +160,17 @@ def is_image_valid(file_path):
         except Exception as e:
             logger.error(f"Invalid image file: {str(e)}")
             return False
+
+
+def extract_text_with_textract(image_path):
+     """Use AWS Textract instead of Tesseract for OCR."""
+     with open(image_path, "rb") as f:
+         img_bytes = f.read()
+     resp = textract.detect_document_text(Document={"Bytes": img_bytes})
+     lines = [b["Text"] for b in resp["Blocks"] if b["BlockType"] == "LINE"]
+     return "\n".join(lines).strip()
+
+
 
 @app.route('/', methods=['GET'])
 def root():
@@ -290,26 +271,37 @@ def analyze():
                 }), 400
                 
                 
-        try:
-            diagram_data = extract_diagram_features(image_path)
-    
+        # try:
+          
 
-            diagram_features = diagram_data.to_dict()
-            print(diagram_data, "----",diagram_features)
-            logger.info(f"image 0- {diagram_data}, {diagram_features}")
-        except:
-            logger.error(f"Text diagram: {str(text_error)}")
-            logger.error(traceback.format_exc())
-                
 
-        # Extract text with error handling - already handles SVG files specially
-        try:
-            text_result = safe_extract_text(image_path)
-            logger.info(f"Text extraction completed: {len(text_result)} characters")
-        except Exception as text_error:
-            logger.error(f"Text extraction failed completely: {str(text_error)}")
-            logger.error(traceback.format_exc())
-            text_result = ""
+
+
+        #         diagram_data = extract_diagram_features(image_path)
+        #         # Convert to serializable dict
+        #         diagram_features = diagram_data.to_dict()
+        #         dt = diagram_data.diagram_type
+        #         if isinstance(dt, DiagramType):
+        #             diagram_features["diagram_type"] = dt.value
+
+        #         logger.info("diagram_features: %r", diagram_features)          
+
+        # except Exception as diag_err:
+        #         logger.error("Diagram extraction failed: %s", diag_err, exc_info=True)
+        #         # You might want to set diagram_features to an empty or error dict here
+        #         diagram_features = {}
+
+
+
+
+
+        # try:
+        #     text_result = extract_text_with_textract(image_path)
+        #     logger.info(f"Textract OCR completed: {len(text_result)} characters")
+        # except Exception as text_error:
+        #     logger.error(f"Text extraction failed completely: {str(text_error)}")
+        #     logger.error(traceback.format_exc())
+        #     text_result = ""
         
         # Extract symbols - for SVG, this will likely return empty
         try:
@@ -349,8 +341,9 @@ def analyze():
             },
             "quality_rating": quality_label,
             **quality_metrics,
-            'text_result': text_result,
-            'symbols_result': symbols_result
+            # 'text_result': text_result,
+            'symbols_result': symbols_result,
+            #  'diagram_features': diagram_features if 'diagram_features' in locals() else {}
         }
         
         # Log successful analysis
@@ -359,7 +352,7 @@ def analyze():
         return jsonify(result)
     
     except Exception as e:
-        logger.error(f"Unhandled exception in analyze endpoint: {str(e)}")
+        # logger.error(f"Unhandled exception in analyze endpoint: {str(e)}")
         logger.error(traceback.format_exc())
         
         # Return a partial result even on error
@@ -387,10 +380,13 @@ def analyze():
             },
             'quality_rating': "High" if is_svg else "Medium",
             'text_result': "",
-            'symbols_result': []
+            'symbols_result': [],
+            # 'diagram_features': diagram_data if 'diagram_features' in locals() else {}
         }), 500
-    
+
     finally:
+
+        logger.info('Cleaning up temporary files', )
         # Clean up the uploaded file
         if 'image_path' in locals() and os.path.exists(image_path):
             try:
@@ -406,11 +402,11 @@ def health_check():
     
     # Check if Tesseract is working
     tesseract_ok = True
-    try:
-        pytesseract.get_tesseract_version()
-    except Exception as e:
-        tesseract_ok = False
-        logger.error(f"Tesseract check failed: {str(e)}")
+    # try:
+    #     pytesseract.get_tesseract_version()
+    # except Exception as e:
+    #     tesseract_ok = False
+    #     logger.error(f"Tesseract check failed: {str(e)}")
     
     # Check if OpenCV is working
     opencv_ok = True

@@ -7,6 +7,8 @@ const s3 = require('../config/aws');
 const { analyzeImage } = require('../services/flaskClient');
 const { enqueueMessage } = require('../queues/queueManager');
 const { cleanTempDir } = require('../services/fileService');
+// … other imports …
+const { extractTextFromBuffer } = require("../../textract");
 
 async function processMessage(message) {
   const { diagramId, s3Key } = message;
@@ -41,6 +43,15 @@ async function processMessage(message) {
 
     fs.writeFileSync(tempFilePath, s3Object.Body);
 
+
+    let awsTextractText = "";
+try {
+  awsTextractText = await extractTextFromBuffer(s3Object.Body);
+  logger.info("✅ Textract extracted:", awsTextractText.slice(0, 120));
+} catch (err) {
+  logger.warn("❌ Textract failed:", err);
+}
+
     const analysisData = await analyzeImage(
       process.env.FLASK_API_URL,
       tempFilePath,
@@ -55,6 +66,11 @@ async function processMessage(message) {
         return defaultValue;
       }
     };
+
+
+
+    
+
 
     const width = safeGet(analysisData, 'basic_metrics.dimensions.width', 800);
     const height = safeGet(analysisData, 'basic_metrics.dimensions.height', 600);
@@ -84,7 +100,7 @@ async function processMessage(message) {
           megapixels: safeGet(analysisData, 'basic_metrics.dimensions.megapixels', 0.48),
         },
       },
-      extracted_text: safeGet(analysisData, 'text_result', ''),
+      extracted_text:  awsTextractText || {},
       extracted_symbols: (safeGet(analysisData, 'symbols_result', []) || []).map(symbol => ({ symbol })),
       color_analysis: {
         dominant_colors: safeGet(analysisData, 'color_analysis.color_stats.dominant_colors', []),

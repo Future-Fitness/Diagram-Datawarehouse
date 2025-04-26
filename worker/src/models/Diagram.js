@@ -37,6 +37,7 @@ const DiagramSchema = new mongoose.Schema({
             std_rgb: { type: [Number] },
         },
     },
+    diagram_features:{},
     quality_scores: {
         overall_quality: { type: Number },
         blur_score: { type: Number },
@@ -47,6 +48,7 @@ const DiagramSchema = new mongoose.Schema({
         noise_level: { type: Number },
         sharpness: { type: Number },
     },
+    searchable_text: {  },
     quality_rating: { type: String, enum: ["Low", "Medium", "High"], default: "Medium" },
     created_at: { type: Date, default: Date.now },
 });

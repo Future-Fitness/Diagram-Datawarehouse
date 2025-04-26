@@ -7,15 +7,16 @@ const multer = require("multer");
 const Diagram = require("../models/Diagram"); // Use correct Mongoose model
 
 const FLASK_API_URL = process.env.FLASK_API_URL;
-
+const { extractTextWithTextractBuffer } = require("../textract");
 // ✅ Function to Save Analysis Data to MongoDB
 async function saveAnalysisData(imageData, analysisData) {
-
+  console.log("🚀 ~ saveAnalysisData ~ imageData:", analysisData);
   try {
     // 💡 Safely extract text (must be string, not object)
-    const safeExtractedText = typeof analysisData.text_result === 'string'
-      ? analysisData.text_result
-      : '';
+    const safeExtractedText = typeof imageData.extracted_text === 'string'
+    ? imageData.extracted_text
+    : '';
+
 
     // 💡 Safely extract symbols (must be array of objects with symbol strings)
     const safeExtractedSymbols = Array.isArray(analysisData.extracted_symbols)
@@ -68,13 +69,14 @@ async function saveAnalysisData(imageData, analysisData) {
 
       quality_rating: quality_rating || "Medium",
 
-      extracted_text: safeExtractedText,  // ✅ Corrected
+      extracted_text: "noo",  // ✅ Corrected
       extracted_symbols: safeExtractedSymbols,  // ✅ Corrected
 
 
       related_diagrams: [],
       searchable_text: `${imageData.fileName} ${imageData.category} ${imageData.tags.join(" ")} ${analysisData.extracted_text || ""
         }`,
+        diagram_features:analysisData.diagram_features || {},
     });
 
 
@@ -107,6 +109,15 @@ const processImage = async (file, imageMetadata) => {
       contentType: file.mimetype,
     });
 
+
+    let textractText = "";
+      try {
+        textractText = await extractTextWithTextractBuffer(file.buffer);
+         console.log("✅ Textract text:", textractText.slice(0,100));
+      } catch(err) {
+         console.error("❌ Textract failed:", err);
+       }
+       
 
     //calling flask api service which analyzes and get all image meta data ,like text extraction, and color and oths
     const flaskResponse = await axios.post(`${FLASK_API_URL}/analyze`, formData, {
@@ -162,8 +173,8 @@ const processImage = async (file, imageMetadata) => {
       category: imageMetadata?.category || "Uncategorized",
       tags: imageMetadata?.tags || [],
 
-      extracted_text: flaskResponse.data.text_result || "\n",
-      extracted_symbols: flaskResponse.data.symbols_result || []
+      extracted_text: textractText || "\n",
+
 
 
     };
