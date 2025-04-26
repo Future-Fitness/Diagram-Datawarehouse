@@ -22,7 +22,7 @@ WORKDIR /app
 
 # Copy requirements first
 COPY requirements.txt .
-
+RUN apt-get update && apt-get install -y poppler-utils && rm -rf /var/lib/apt/lists/*
 # Install Python dependencies
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
