@@ -2,6 +2,10 @@
 
 
 
+https://github.com/user-attachments/assets/139e328a-48bc-4058-ad0c-e5cc2587ce79
+
+
+
 # Image Analysis Platform
 
 A comprehensive platform for uploading, analyzing, and managing diagram images with automated quality assessment, text extraction, and intelligent search capabilities.
