@@ -1,202 +1,222 @@
 ![image](https://github.com/user-attachments/assets/a2e2a602-61a6-4ac8-b481-fd3350701589)
 
 
-challenges faced - 
-dev pracitces 
-explain techstack 
-timeline 
-technical flow
-demo - front & backend
 
-flowchart TB
-    subgraph Client
-        UI[User Interface]
-        REST[REST Client]
-    end
-    
-    subgraph API["API Gateway"]
-        Auth[Authentication]
-        Rate[Rate Limiter]
-        Router[API Router]
-    end
-    
-    subgraph Services["Microservices"]
-        ImageSvc[Image Service]
-        AnalysisSvc[Analysis Service]
-        MetadataSvc[Metadata Service]
-        QualitySvc[Quality Scoring]
-        TextSvc[Text Extraction]
-    end
-    
-    subgraph Storage
-        MongoDB[(MongoDB)]
-        S3[(Image Storage)]
-        Redis[(Redis Cache)]
-    end
-    
-    UI --> REST
-    REST --> Auth
-    Auth --> Rate
-    Rate --> Router
-    
-    Router --> ImageSvc
-    Router --> AnalysisSvc
-    Router --> MetadataSvc
-    
-    ImageSvc --> S3
-    ImageSvc --> MongoDB
-    
-    AnalysisSvc --> QualitySvc
-    AnalysisSvc --> TextSvc
-    
-    QualitySvc --> MongoDB
-    TextSvc --> MongoDB
-    
-    MetadataSvc --> MongoDB
-    
-    ImageSvc --> Redis
-    MetadataSvc --> Redis
-    
-    classDef primary fill:#3498db,stroke:#2980b9,color:white
-    classDef secondary fill:#2ecc71,stroke:#27ae60,color:white
-    classDef storage fill:#95a5a6,stroke:#7f8c8d,color:white
-    classDef client fill:#9b59b6,stroke:#8e44ad,color:white
-    
-    class Auth,Rate,Router primary
-    class ImageSvc,AnalysisSvc,MetadataSvc,QualitySvc,TextSvc secondary
-    class MongoDB,S3,Redis storage
-    class UI,REST client
+# Image Analysis Platform
 
-    sequenceDiagram
-    participant Client
-    participant Gateway as API Gateway
-    participant ImageSvc as Image Service
-    participant AnalysisSvc as Analysis Service
-    participant Storage as Image Storage
-    participant DB as Database
+A comprehensive platform for uploading, analyzing, and managing diagram images with automated quality assessment, text extraction, and intelligent search capabilities.
 
-    Client->>Gateway: Authentication request
-    Gateway-->>Client: JWT Token
-    
-    Note over Client,Gateway: Image Upload Flow
-    
-    Client->>Gateway: POST /api/images with image file
-    Gateway->>ImageSvc: Forward request
-    ImageSvc->>Storage: Store image file
-    Storage-->>ImageSvc: Return image URL
-    ImageSvc->>DB: Create initial metadata record
-    DB-->>ImageSvc: Confirm creation
-    ImageSvc->>AnalysisSvc: Request analysis
-    
-    Note right of AnalysisSvc: Asynchronous Processing
-    
-    ImageSvc-->>Client: Return initial response (202 Accepted)
-    
-    AnalysisSvc->>Storage: Retrieve image
-    Storage-->>AnalysisSvc: Return image data
-    AnalysisSvc->>AnalysisSvc: Perform analysis (quality, color, text)
-    AnalysisSvc->>DB: Update metadata with analysis results
-    DB-->>AnalysisSvc: Confirm update
-    
-    Note over Client,DB: Image Retrieval Flow
-    
-    Client->>Gateway: GET /api/images/{id}
-    Gateway->>ImageSvc: Forward request
-    ImageSvc->>DB: Retrieve image metadata
-    DB-->>ImageSvc: Return image data
-    ImageSvc-->>Client: Return complete image data
-    
-    Note over Client,DB: Bulk Retrieval Flow
-    
-    Client->>Gateway: GET /api/images with filters
-    Gateway->>ImageSvc: Forward request
-    ImageSvc->>DB: Query images with filters
-    DB-->>ImageSvc: Return matching images
-    ImageSvc-->>Client: Return image collection
+## System Architecture
 
+The project consists of several integrated components:
+- **Frontend Application**: React-based client application
+- **Backend API**: Express.js server with REST and GraphQL endpoints
+- **Processing Services**: Background workers and Flask microservice for image analysis
+- **Storage Services**: MongoDB for metadata and AWS S3 for image storage
+- **Message Queue**: Redis for managing background processing jobs
 
+![System Architecture](architecture-diagram.png)
 
-    classDiagram
-    class Image {
-        String _id
-        String title
-        String image_url
-        String filename
-        Date created_at
-        Date upload_date
-        String sub_category
-        String sourceType
-        String author
-        String notes
-        String extracted_text
-        String quality_rating
-        ObjectId subjectId
-        ObjectId diagramTypeId
-        Object file_info
-        Object quality_scores
-        Object color_analysis
+## Features
+
+- Image upload and automated analysis
+- Text extraction from diagrams
+- Quality assessment and scoring
+- Advanced search with filtering and autocomplete
+- Similar diagram recommendations
+- GraphQL API for flexible data querying
+- Background processing for handling large workloads
+- Admin dashboard for monitoring system performance
+
+## Prerequisites
+
+- Docker and Docker Compose
+- Node.js (v14+ recommended)
+- npm or yarn
+- AWS account with S3 bucket configured
+- MongoDB Atlas account or local MongoDB instance
+- Redis
+
+## Environment Setup
+
+1. Clone the repository
+   ```bash
+   git clone https://github.com/yourusername/image-analysis-platform.git
+   cd image-analysis-platform
+   ```
+
+2. Create `.env` files
+
+   **For backend (./.env):**
+   ```
+   # Server
+   PORT=4000
+   NODE_ENV=development
+
+   # MongoDB
+   MONGODB_URL=mongodb+srv://username:password@cluster.mongodb.net/diagrams
+
+   # AWS
+   AWS_ACCESS_KEY=your_access_key
+   AWS_SECRET_KEY=your_secret_key
+   AWS_REGION=us-east-1
+   S3_BUCKET_NAME=your-bucket-name
+   CLOUDFRONT_DOMAIN=your-cloudfront-domain.cloudfront.net
+
+   # Redis
+   REDIS_HOST=redis
+   REDIS_PORT=6379
+
+   # Flask Microservice
+   FLASK_API_URL=http://flask-service:5000
+   ```
+
+   **For client (./client/.env):**
+   ```
+   VITE_API_URL=http://localhost:4000/api
+   VITE_GRAPHQL_URL=http://localhost:4000/api/graphql
+   ```
+
+## Running with Docker Compose
+
+For a complete development environment:
+
+1. Build and start all services
+   ```bash
+   docker-compose up --build
+   ```
+
+   This will start:
+   - Backend API (http://localhost:4000)
+   - Frontend application (http://localhost:3000)
+   - Redis queue
+   - Worker services
+   - Flask analysis microservice
+
+2. To stop all services
+   ```bash
+   docker-compose down
+   ```
+
+## Running Components Individually
+
+### Backend Setup
+
+1. Navigate to the backend directory
+   ```bash
+   cd backend
+   ```
+
+2. Install dependencies
+   ```bash
+   npm install
+   ```
+
+3. Start the development server
+   ```bash
+   npm run dev
+   ```
+
+   The API will be available at http://localhost:4000
+
+### Frontend Setup
+
+1. Navigate to the client directory
+   ```bash
+   cd client
+   ```
+
+2. Install dependencies
+   ```bash
+   npm install
+   ```
+
+3. Start the development server
+   ```bash
+   npm run dev
+   ```
+
+   The frontend will be available at http://localhost:3000
+
+## API Documentation
+
+### REST API Endpoints
+
+- `POST /api/v1/analyze` - Upload and analyze an image
+- `GET /api/v1/diagram/:id/status` - Get processing status for a diagram
+- `GET /api/v1/getAllImages` - Get all images
+- `GET /api/v1/diagram` - Search diagrams with filters
+- `GET /api/v1/diagram/autocomplete` - Get search suggestions
+- `GET /api/v1/diagram/:diagramId/similar` - Find similar diagrams
+
+### GraphQL API
+
+The GraphQL playground is available at http://localhost:4000/api/graphql
+
+Example queries:
+```graphql
+# Get all diagrams with pagination
+query GetAllDiagrams($page: Int, $limit: Int) {
+  getAllDiagrams(page: $page, limit: $limit) {
+    diagrams {
+      _id
+      title
+      image_url
     }
-    
-    class FileInfo {
-        String format
-        String resolution
-        Number file_size_mb
-        Object dimensions
-    }
-    
-    class Dimensions {
-        Number width
-        Number height
-        Number megapixels
-    }
-    
-    class QualityScores {
-        Number overall_quality
-        Number blur_score
-        Number brightness_score
-        Number contrast_score
-        Number detail_score
-        Number edge_density
-        Number noise_level
-        Number sharpness
-    }
-    
-    class ColorAnalysis {
-        Array~Array~Number~~ dominant_colors
-        Object color_distribution
-    }
-    
-    class ColorDistribution {
-        Array~Number~ mean_rgb
-        Array~Number~ mean_hsv
-        Array~Number~ mean_lab
-        Array~Number~ std_rgb
-    }
-    
-    class Subject {
-        String _id
-        String name
-        String description
-    }
-    
-    class DiagramType {
-        String _id
-        String name
-        String description
-        String category
-    }
-    
-    Image "1" -- "1" FileInfo : contains
-    FileInfo "1" -- "1" Dimensions : contains
-    Image "1" -- "1" QualityScores : contains
-    Image "1" -- "0..1" ColorAnalysis : contains
-    ColorAnalysis "1" -- "1" ColorDistribution : contains
-    Image "0..1" -- "1" Subject : belongs to
-    Image "0..1" -- "1" DiagramType : categorized as
+    total
+    totalPages
+    currentPage
+  }
+}
 
+# Search diagrams
+query SearchDiagrams($query: String, $subjectId: ID, $page: Int, $limit: Int) {
+  searchDiagrams(query: $query, subjectId: $subjectId, page: $page, limit: $limit) {
+    diagrams {
+      _id
+      title
+      image_url
+    }
+    total
+    totalPages
+    currentPage
+  }
+}
+```
 
+## Testing
 
+Run the test suite with:
 
-    setup -
-locally
-    docker network create nginx-network
+```bash
+npm test
+```
+
+## Deployment
+
+### Production Deployment
+
+For production deployment, we recommend:
+
+1. Using AWS ECS or Kubernetes for container orchestration
+2. Setting up auto-scaling for worker nodes
+3. Using a managed Redis service
+4. Configuring CloudFront for content delivery
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- AWS for storage and CDN services
+- MongoDB for database services
+- The Flask and Python communities for image analysis tools
