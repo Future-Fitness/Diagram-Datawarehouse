@@ -90,23 +90,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
   image, 
 
 }) => {
-  // Format date to human-readable
-  const formatDate = (dateString?: string): string => {
-    if (!dateString) return "Unknown date";
-    
-    try {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(date);
-    } catch (error) {
-      return "Date error";
-    }
-  };
+
 
   // Format file size
   const formatFileSize = (size?: number): string => {
@@ -262,7 +246,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
               </span>
             )}
             <span className="bg-slate-700 text-slate-200 px-3 py-1 rounded-full text-sm flex items-center">
-              <span className="mr-1">📅</span> {formatDate(image.created_at)}
+
             </span>
           </div>
         </div>
@@ -603,7 +587,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
       </div>
       
       {/* Footer Actions */}
-      <div className="p-4 border-t border-slate-700 flex flex-wrap gap-3 justify-between items-center">
+      {/* <div className="p-4 border-t border-slate-700 flex flex-wrap gap-3 justify-between items-center">
         <div className="flex flex-wrap gap-2">
           <button className="bg-slate-600 text-slate-200 px-4 py-2 rounded flex items-center hover:bg-slate-500 transition">
             <span className="mr-2">🔗</span> Copy Link
@@ -615,7 +599,7 @@ const ImageDetailVisualization: React.FC<ImageDetailVisualizationProps> = ({
         <div className="text-slate-400 text-sm">
           Last updated: {formatDate(image.created_at)}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

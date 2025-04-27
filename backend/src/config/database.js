@@ -3,10 +3,7 @@ const mongoose = require("mongoose");
 // ✅ Function to check DB connection on startup
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URL, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.connect(process.env.MONGODB_URL);
     console.log(`✅ Connected to MongoDB Atlas: ${conn.connection.host}`);
   } catch (error) {
     console.error("❌ Database connection failed:", error);

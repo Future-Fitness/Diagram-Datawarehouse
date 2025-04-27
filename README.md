@@ -193,3 +193,10 @@ flowchart TB
     ColorAnalysis "1" -- "1" ColorDistribution : contains
     Image "0..1" -- "1" Subject : belongs to
     Image "0..1" -- "1" DiagramType : categorized as
+
+
+
+
+    setup -
+locally
+    docker network create nginx-network

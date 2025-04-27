@@ -117,7 +117,8 @@ def extract_text(image_path):
                     best_method = method
                     
             except Exception as e:
-                logger.warning(f"OCR failed for method {method}: {str(e)}")
+                print("----120")
+                # logger.warning(f"OCR failed for method {method}: {str(e)}")
         
         if best_text:
             logger.info(f"Best OCR result from method {best_method} with confidence {best_confidence:.2f}")

@@ -1,8 +1,37 @@
 flask==2.0.1
 werkzeug==2.0.1
-pillow==8.3.1
-numpy==1.21.1
+
+
 opencv-python-headless
 pytesseract==0.3.8
 requests
 tika
+numpy
+pillow
+
+pytesseract>=0.3.8                # Tesseract OCR wrapper
+
+
+paddleocr>=2.6.0                   # PaddleOCR pipeline
+paddlepaddle>=2.4.2                # Backend for PaddleOCR
+easyocr>=1.4.1                     # EasyOCR engine
+                  
+albumentations
+setuptools
+wheel
+# add these to your requirements.txt
+scikit-image>=0.18.3
+scikit-learn>=1.0
+networkx>=2.6
+shapely>=1.8
+rdkit-pypi>=2022.3
+opencv-contrib-python>=4.5
+# Remove this line:
+
+# Replace with these specific versions:
+camelot-py==0.11.0
+opencv-python-headless>=4.5.1.48
+
+tabula-py>=2.3.0
+boto3 
+botocore

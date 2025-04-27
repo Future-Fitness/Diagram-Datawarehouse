@@ -8,8 +8,8 @@ const typeDefs = gql`
   }
 
   type Dimensions {
-    width: Int!
-    height: Int!
+    width: Float!!
+    height: Float!!
     megapixels: Float!
   }
 
@@ -18,6 +18,7 @@ const typeDefs = gql`
     format: String!
     resolution: String!
     dimensions: Dimensions!
+
   }
 
   type ColorDistribution {
@@ -28,7 +29,7 @@ const typeDefs = gql`
   }
 
   type ColorAnalysis {
-    dominant_colors: [[Int!]!]!
+    dominant_colors: [[Float!!]!]!
     color_distribution: ColorDistribution!
   }
 
@@ -52,7 +53,7 @@ const typeDefs = gql`
     diagramTypeId: ID
     sub_category: String
     sourceType: String
-    pageNumber: Int
+    pageNumber: Float!
     author: String
     notes: String
     subjects: [String!]
@@ -69,20 +70,20 @@ const typeDefs = gql`
 
   type DiagramPagination {
     diagrams: [Diagram]
-    total: Int
-    totalPages: Int
-    currentPage: Int
+    total: Float!
+    totalPages: Float!
+    currentPage: Float!
   }
 
   type Query {
     # Fetch all images (No filtering, just pagination)
-    getAllDiagrams(page: Int, limit: Int): DiagramPagination
+    getAllDiagrams(page: Float!, limit: Float!): DiagramPagination
     
     # Fetch a single diagram by ID
     getDiagramById(id: ID!): Diagram
     
     # Fetch diagrams by subject type
-    getAllDiagramsBySubjectType(subjectId: ID, page: Int, limit: Int): DiagramPagination
+    getAllDiagramsBySubjectType(subjectId: ID, page: Float!, limit: Float!): DiagramPagination
   }
 `;
 

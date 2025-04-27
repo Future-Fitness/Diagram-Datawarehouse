@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 
-const VITE_BASE_URL = 'https://harshsaw.tech/datadiagram/api';
+const VITE_BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:4000/api';
 
 // Updated interfaces to match the new API response structure
 interface DiagramType {
@@ -135,7 +135,7 @@ export default function UploadForm() {
     Object.entries(formData).forEach(([key, value]) => form.append(key, value));
 
     try {
-      const response = await axios.post(`${VITE_BASE_URL}/v1/analyze`, form, {
+      const response = await axios.post(`${VITE_BASE_URL}/v1/analyze?enhance=true`, form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
